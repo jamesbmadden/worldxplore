@@ -1,4 +1,5 @@
-[[location(0)]] var<in> position: vec3<f32>;
+[[location(0)]] var<in> position: vec2<f32>;
+[[location(1)]] var<in> tex_coord: vec2<f32>;
 
 [[builtin(position)]] var<out> out_position: vec4<f32>;
 [[location(0)]] var<out> out_color: vec4<f32>;

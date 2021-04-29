@@ -6,6 +6,7 @@ use winit::{
   event_loop::{ControlFlow, EventLoop},
   window::WindowBuilder,
 };
+use futures::executor::block_on;
 
 const WIDTH: i32 = 11;
 const HEIGHT: i32 = 11;
@@ -31,6 +32,21 @@ fn main() {
       .expect("Append canvas to HTML body");
   }
   // send to renderer
-  println!("{:?}", render::gen_vertices(world, WIDTH, HEIGHT));
-  //let renderer = render::Render::new(&window);
+  let renderer = block_on(render::Render::new(&window, world));
+
+  // run event loop
+  event_loop.run(move | event, _, control_flow | {
+    *control_flow = ControlFlow::Wait;
+
+    match event {
+      Event::WindowEvent {
+        event: WindowEvent::CloseRequested,
+        ..
+      } => *control_flow = ControlFlow::Exit,
+      Event::RedrawRequested (_) => {
+        renderer.render();
+      },
+      _ => ()
+    }
+  });
 }
