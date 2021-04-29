@@ -8,8 +8,8 @@ use winit::{
 };
 use futures::executor::block_on;
 
-const WIDTH: i32 = 11;
-const HEIGHT: i32 = 11;
+const WIDTH: i32 = 24;
+const HEIGHT: i32 = 18;
 
 fn main() {
   // generate the world
@@ -17,6 +17,8 @@ fn main() {
   // create a window
   let event_loop = EventLoop::new();
   let window = WindowBuilder::new().build(&event_loop).unwrap();
+  // set window options
+  window.set_title("WorldXPlore Alpha");
   // create a canvas if we're running in web
   #[cfg(feature = "web-sys")]
   {
