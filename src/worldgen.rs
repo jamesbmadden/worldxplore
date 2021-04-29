@@ -1,4 +1,5 @@
-use noise::{NoiseFn, Perlin};
+use noise::{NoiseFn, Perlin, Seedable};
+use rand::prelude::*;
 
 /**
 * Create a map of specified size with perlin noise points
@@ -7,7 +8,8 @@ pub fn generate_perlin (width: i32, height: i32) -> Vec<Vec<f64>> {
   // create a vector to store world data in
   let mut world: Vec<Vec<f64>> = Vec::new();
   // make a perlin noise function to read from
-  let p_noise = Perlin::new();
+  let p_noise = Perlin::new().set_seed(rand::random::<u32>());
+  println!("Seed: {}", p_noise.seed());
   // loop [x][y] the size specified
   for x in 0..width {
     let mut row: Vec<f64> = Vec::new();
