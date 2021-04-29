@@ -15,5 +15,5 @@ fn vs_main() {
 
 [[stage(fragment)]]
 fn fs_main() {
-    out_color = vec4<f32>(f_tex_coord.x, f_tex_coord.y, f_tex_coord.x, 1.0);
+    out_color = vec4<f32>(f_tex_coord.x, f_tex_coord.x, f_tex_coord.x, 1.0);
 }
