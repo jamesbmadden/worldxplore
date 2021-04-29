@@ -3,7 +3,7 @@ use noise::{NoiseFn, Perlin};
 /**
 * Create a map of specified size with perlin noise points
 */
-pub fn generate_perlin (width: usize, height: usize) -> Vec<Vec<f64>> {
+pub fn generate_perlin (width: i32, height: i32) -> Vec<Vec<f64>> {
   // create a vector to store world data in
   let mut world: Vec<Vec<f64>> = Vec::new();
   // make a perlin noise function to read from

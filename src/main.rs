@@ -7,8 +7,8 @@ use winit::{
   window::WindowBuilder,
 };
 
-const WIDTH = 11;
-const HEIGHT = 11;
+const WIDTH: i32 = 11;
+const HEIGHT: i32 = 11;
 
 fn main() {
   // generate the world
@@ -31,5 +31,6 @@ fn main() {
       .expect("Append canvas to HTML body");
   }
   // send to renderer
-  let renderer = render::Render::new(&window);
+  println!("{:?}", render::gen_vertices(world, WIDTH, HEIGHT));
+  //let renderer = render::Render::new(&window);
 }
