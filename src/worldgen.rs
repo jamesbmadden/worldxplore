@@ -28,8 +28,8 @@ pub fn generate_perlin (width: i32, height: i32) -> Vec<Vec<f64>> {
 pub fn elevation_to_tiles (p_map: Vec<Vec<f64>>) -> Vec<Vec<usize>> {
   // map over the map
   p_map.iter().map(|p_row| p_row.iter().map(|tile| {
-    if tile < &0.4 { return 0 }
-    else if tile < &0.6 { return 1 }
+    if tile < &0. { return 0 }
+    else if tile < &0.2 { return 1 }
     else { return 2 }
   }).collect()).collect()
 }
