@@ -31,7 +31,10 @@ pub struct Render {
   pub index_count: usize,
 
   pub cam_width: i32,
-  pub cam_height: i32
+  pub cam_height: i32,
+
+  pub prev_x: i32,
+  pub prev_y: i32
 }
 
 impl Render {
@@ -262,7 +265,8 @@ impl Render {
     Render {
       surface, device, queue, vertex_buf, index_buf, uniform_buf, render_pipeline, swap_chain, bind_group, uniform_bind_group,
       index_count, vertices,
-      cam_width, cam_height
+      cam_width, cam_height,
+      prev_x: 0, prev_y: 0
     }
 
   }
@@ -274,22 +278,32 @@ impl Render {
     // update the camera
     cam.update();
 
-    // now update local values
-    let (vertices, indices) = gen_vertices(&world, cam.x.floor() as i32, cam.y.floor() as i32, self.cam_width, self.cam_height);
-    self.vertices = vertices;
-    self.index_count = indices.len();
-    self.vertex_buf = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-      label: Some("Vertex Buffer"),
-      contents: bytemuck::cast_slice(&self.vertices),
-      usage: wgpu::BufferUsage::VERTEX
-    });
-    self.index_buf = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-      label: Some("Index Buffer"),
-      contents: bytemuck::cast_slice(&indices),
-      usage: wgpu::BufferUsage::INDEX
-    });
+    // round cam position to nearest tile
+    let rounded_x = cam.x.floor() as i32;
+    let rounded_y = cam.y.floor() as i32;
+
+    // check if values need update
+    if (rounded_x != self.prev_x || rounded_y != self.prev_y) {
+      // if so, update local values
+      let (vertices, indices) = gen_vertices(&world, rounded_x, rounded_y, self.cam_width, self.cam_height);
+      self.vertices = vertices;
+      self.index_count = indices.len();
+      self.vertex_buf = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("Vertex Buffer"),
+        contents: bytemuck::cast_slice(&self.vertices),
+        usage: wgpu::BufferUsage::VERTEX
+      });
+      self.index_buf = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("Index Buffer"),
+        contents: bytemuck::cast_slice(&indices),
+        usage: wgpu::BufferUsage::INDEX
+      });
+    }
     // update the uniforms buffer with new data
     self.queue.write_buffer(&self.uniform_buf, 0, bytemuck::cast_slice(&[cam.uniforms]));
+    // update previous position
+    self.prev_x = rounded_x;
+    self.prev_y = rounded_y;
   }
 
   /**
