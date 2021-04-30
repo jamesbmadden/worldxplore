@@ -23,7 +23,9 @@ pub struct Render {
   pub swap_chain: wgpu::SwapChain,
   pub vertex_buf: wgpu::Buffer,
   pub index_buf: wgpu::Buffer,
+  pub uniform_buf: wgpu::Buffer,
   pub bind_group: wgpu::BindGroup,
+  pub uniform_bind_group: wgpu::BindGroup,
 
   pub vertices: Vec<Vertex>,
   pub index_count: usize,
@@ -66,11 +68,6 @@ impl Render {
       contents: bytemuck::cast_slice(&vertices),
       usage: wgpu::BufferUsage::VERTEX
     });
-    let index_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-      label: Some("Index Buffer"),
-      contents: bytemuck::cast_slice(&indices),
-      usage: wgpu::BufferUsage::INDEX
-    });
     let vertex_buffers = [wgpu::VertexBufferLayout {
       array_stride: mem::size_of::<Vertex>() as u64,
       step_mode: wgpu::InputStepMode::Vertex,
@@ -87,6 +84,45 @@ impl Render {
         }
       ]
     }];
+
+    let index_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+      label: Some("Index Buffer"),
+      contents: bytemuck::cast_slice(&indices),
+      usage: wgpu::BufferUsage::INDEX
+    });
+
+    // uniform only (as of now at least) contains the offset for movement.
+    let uniform_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+      label: Some("Uniform Buffer"),
+      contents: bytemuck::cast_slice(&[camera::Uniforms::default()]),
+      usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST
+    });
+    let uniform_bg_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+      entries: &[
+        wgpu::BindGroupLayoutEntry {
+          binding: 0,
+          visibility: wgpu::ShaderStage::VERTEX,
+          ty: wgpu::BindingType::Buffer {
+            ty: wgpu::BufferBindingType::Uniform,
+            has_dynamic_offset: false,
+            min_binding_size: None
+          },
+          count: None
+        }
+      ],
+      label: Some("Uniform Bind Group Layout")
+    });
+    let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+      layout: &uniform_bg_layout,
+      entries: &[
+        wgpu::BindGroupEntry {
+          binding: 0,
+          resource: uniform_buf.as_entire_binding()
+        }
+      ],
+      label: Some("Uniform Bind Group")
+    });
+
     // load shader
     let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
       label: None,
@@ -188,7 +224,10 @@ impl Render {
 
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
       label: None,
-      bind_group_layouts: &[&tex_bg_layout],
+      bind_group_layouts: &[
+        &tex_bg_layout,
+        &uniform_bg_layout
+      ],
       push_constant_ranges: &[]
     });
 
@@ -221,7 +260,7 @@ impl Render {
     });
 
     Render {
-      surface, device, queue, vertex_buf, index_buf, render_pipeline, swap_chain, bind_group,
+      surface, device, queue, vertex_buf, index_buf, uniform_buf, render_pipeline, swap_chain, bind_group, uniform_bind_group,
       index_count, vertices,
       cam_width, cam_height
     }
@@ -249,6 +288,8 @@ impl Render {
       contents: bytemuck::cast_slice(&indices),
       usage: wgpu::BufferUsage::INDEX
     });
+    // update the uniforms buffer with new data
+    self.queue.write_buffer(&self.uniform_buf, 0, bytemuck::cast_slice(&[cam.uniforms]));
   }
 
   /**
@@ -273,6 +314,7 @@ impl Render {
       });
       rpass.set_pipeline(&self.render_pipeline);
       rpass.set_bind_group(0, &self.bind_group, &[]);
+      rpass.set_bind_group(1, &self.uniform_bind_group, &[]);
       rpass.set_index_buffer(self.index_buf.slice(..), wgpu::IndexFormat::Uint16);
       rpass.set_vertex_buffer(0, self.vertex_buf.slice(..));
       rpass.draw_indexed(0..self.index_count as u32, 0, 0..1);
