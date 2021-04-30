@@ -48,7 +48,7 @@ impl Camera {
 
     // make transforms for how much to offset tiles for smoother scrolling
     let x_offset = self.x as f32 % 1.;
-    let y_offset = self.x as f32 % 1.;
+    let y_offset = self.y as f32 % 1.;
     let tile_width = 1. / self.width as f32;
     let tile_height = 1. / self.height as f32;
     // set as uniforms to be rendered with
