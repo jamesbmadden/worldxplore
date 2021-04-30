@@ -41,7 +41,7 @@ fn main() {
   }
   // create camera
   let mut camera = camera::Camera::new(CAM_WIDTH, CAM_HEIGHT);
-  // send to rendere
+  // create renderer
   let mut renderer = block_on(render::Render::new(&window, &world, CAM_WIDTH, CAM_HEIGHT));
 
   // run event loop
