@@ -283,7 +283,7 @@ impl Render {
     let rounded_y = cam.y.floor() as i32;
 
     // check if values need update
-    if (rounded_x != self.prev_x || rounded_y != self.prev_y) {
+    if rounded_x != self.prev_x || rounded_y != self.prev_y {
       // if so, update local values
       let (vertices, indices) = gen_vertices(&world, rounded_x, rounded_y, self.cam_width, self.cam_height);
       self.vertices = vertices;
