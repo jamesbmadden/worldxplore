@@ -12,8 +12,12 @@ fn vs_main() {
 }
 
 [[location(1)]] var<in> f_tex_coord: vec2<f32>;
+[[group(0), binding(0)]]
+var f_tex_color: texture_2d<f32>;
+[[group(0), binding(1)]]
+var f_tex_sampler: sampler;
 
 [[stage(fragment)]]
 fn fs_main() {
-    out_color = vec4<f32>(f_tex_coord.x, f_tex_coord.x, f_tex_coord.x, 1.0);
+    out_color = textureSample(f_tex_color, f_tex_sampler, f_tex_coord);
 }

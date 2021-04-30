@@ -8,8 +8,8 @@ use winit::{
 };
 use futures::executor::block_on;
 
-const WIDTH: i32 = 24;
-const HEIGHT: i32 = 18;
+const WIDTH: i32 = 32;
+const HEIGHT: i32 = 24;
 
 fn main() {
   // generate the world

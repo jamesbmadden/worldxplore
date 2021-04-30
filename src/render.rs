@@ -2,6 +2,7 @@ use std::{borrow::Cow, convert::TryInto, mem};
 
 use wgpu::util::DeviceExt;
 use bytemuck::{Pod, Zeroable};
+use image::GenericImageView;
 
 const TILESET_WIDTH: i32 = 128;
 
@@ -20,6 +21,7 @@ pub struct Render {
   pub swap_chain: wgpu::SwapChain,
   pub vertex_buf: wgpu::Buffer,
   pub index_buf: wgpu::Buffer,
+  pub bind_group: wgpu::BindGroup,
 
   pub vertices: Vec<Vertex>,
   pub index_count: usize,
@@ -87,9 +89,101 @@ impl Render {
       flags: wgpu::ShaderFlags::all()
     });
 
+    // create texture
+    let tex_img_data = image::load_from_memory(include_bytes!("assets/tileset.png")).unwrap();
+    let tex_img = tex_img_data.as_rgba8().unwrap();
+
+    let tex_dimensions = tex_img.dimensions();
+
+    let tex_size = wgpu::Extent3d {
+      width: tex_dimensions.0,
+      height: tex_dimensions.1,
+      depth: 1
+    };
+
+    let texture = device.create_texture(&wgpu::TextureDescriptor {
+      size: tex_size,
+      mip_level_count: 1,
+      sample_count: 1,
+      dimension: wgpu::TextureDimension::D2,
+      format: wgpu::TextureFormat::Rgba8UnormSrgb,
+      // SAMPLED tells wgpu that we want to use this texture in shaders
+      // COPY_DST means that we want to copy data to this texture
+      usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+      label: Some("Tileset")
+    });
+
+    queue.write_texture(
+      wgpu::TextureCopyView {
+        texture: &texture,
+        mip_level: 0,
+        origin: wgpu::Origin3d::ZERO
+      },
+      tex_img,
+      wgpu::TextureDataLayout {
+        offset: 0,
+        bytes_per_row: 4 * tex_dimensions.0,
+        rows_per_image: tex_dimensions.1
+      },
+      tex_size
+    );
+
+    // create texture view and sampler
+    let tex_view = texture.create_view(&wgpu::TextureViewDescriptor::default());
+    let tex_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+      address_mode_u: wgpu::AddressMode::ClampToEdge,
+      address_mode_v: wgpu::AddressMode::ClampToEdge,
+      address_mode_w: wgpu::AddressMode::ClampToEdge,
+      mag_filter: wgpu::FilterMode::Nearest,
+      min_filter: wgpu::FilterMode::Nearest,
+      mipmap_filter: wgpu::FilterMode::Nearest,
+      ..Default::default()
+    });
+
+    // create bind group
+    let tex_bg_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+      entries: &[
+        wgpu::BindGroupLayoutEntry {
+          binding: 0,
+          visibility: wgpu::ShaderStage::FRAGMENT,
+          ty: wgpu::BindingType::Texture {
+            multisampled: false,
+            view_dimension: wgpu::TextureViewDimension::D2,
+            sample_type: wgpu::TextureSampleType::Float { filterable: false }
+          },
+          count: None
+        },
+        wgpu::BindGroupLayoutEntry {
+          binding: 1,
+          visibility: wgpu::ShaderStage::FRAGMENT,
+          ty: wgpu::BindingType::Sampler {
+            comparison: false,
+            filtering: true
+          },
+          count: None
+        }
+      ],
+      label: Some("Texture Bind Group Layout")
+    });
+
+    let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+      layout: &tex_bg_layout,
+      entries: &[
+        wgpu::BindGroupEntry {
+          binding: 0,
+          resource: wgpu::BindingResource::TextureView(&tex_view)
+        },
+        wgpu::BindGroupEntry {
+          binding: 1,
+          resource: wgpu::BindingResource::Sampler(&tex_sampler)
+        }
+      ],
+      label: Some("Texture Bind Group")
+    });
+
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
       label: None,
-      bind_group_layouts: &[],
+      bind_group_layouts: &[&tex_bg_layout],
       push_constant_ranges: &[]
     });
 
@@ -122,7 +216,7 @@ impl Render {
     });
 
     Render {
-      surface, device, queue, vertex_buf, index_buf, render_pipeline, swap_chain,
+      surface, device, queue, vertex_buf, index_buf, render_pipeline, swap_chain, bind_group,
       index_count, vertices
     }
 
@@ -149,6 +243,7 @@ impl Render {
         depth_stencil_attachment: None
       });
       rpass.set_pipeline(&self.render_pipeline);
+      rpass.set_bind_group(0, &self.bind_group, &[]);
       rpass.set_index_buffer(self.index_buf.slice(..), wgpu::IndexFormat::Uint16);
       rpass.set_vertex_buffer(0, self.vertex_buf.slice(..));
       rpass.draw_indexed(0..self.index_count as u32, 0, 0..1);
@@ -179,28 +274,28 @@ pub fn gen_vertices (world: &Vec<Vec<usize>>, width: i32, height: i32) -> (Vec<V
       indices.push(vertices.len().try_into().unwrap());
       vertices.push(Vertex { // bottom left
         pos: [ (x as f32 * tile_width) * 2. - 1., 1. - ((y as f32 + 1.) * tile_height) * 2. ],
-        tex_coords: [ *tiletype as f32 * texture_size, 1. ]
+        tex_coords: [ *tiletype as f32 * texture_size, 0. ]
       });
       indices.push(vertices.len().try_into().unwrap());
       vertices.push(Vertex { // top right
         pos: [ ((x as f32 + 1.) * tile_width) * 2. - 1., 1. - (y as f32 * tile_height) * 2. ],
-        tex_coords: [ *tiletype as f32 * texture_size, 1. ]
+        tex_coords: [ (*tiletype as f32 + 1.) * texture_size, 1. ]
       });
       // bottom left bottom right top right triangle
       indices.push(vertices.len().try_into().unwrap());
       vertices.push(Vertex { // bottom left
         pos: [ (x as f32 * tile_width) * 2. - 1., 1. - ((y as f32 + 1.) * tile_height) * 2. ],
-        tex_coords: [ *tiletype as f32 * texture_size, 1. ]
+        tex_coords: [ *tiletype as f32 * texture_size, 0. ]
       });
       indices.push(vertices.len().try_into().unwrap());
       vertices.push(Vertex { // bottom right
         pos: [ ((x as f32 + 1.) * tile_width) * 2. - 1., 1. - ((y as f32 + 1.) * tile_height) * 2. ],
-        tex_coords: [ *tiletype as f32 * texture_size, 1. ]
+        tex_coords: [ (*tiletype as f32 + 1.) * texture_size, 0. ]
       });
       indices.push(vertices.len().try_into().unwrap());
       vertices.push(Vertex { // top right
         pos: [ ((x as f32 + 1.) * tile_width) * 2. - 1., 1. - (y as f32 * tile_height) * 2. ],
-        tex_coords: [ *tiletype as f32 * texture_size, 1. ]
+        tex_coords: [ (*tiletype as f32 + 1.) * texture_size, 1. ]
       });
     }
   }
