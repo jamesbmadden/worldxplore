@@ -1,15 +1,21 @@
 mod worldgen;
 mod render;
+mod camera;
 
 use winit::{
-  event::{Event, WindowEvent},
+  event::{Event, WindowEvent, ElementState},
   event_loop::{ControlFlow, EventLoop},
   window::WindowBuilder,
 };
 use futures::executor::block_on;
 
-const WIDTH: i32 = 32;
-const HEIGHT: i32 = 24;
+// Dimensions of the world
+const WIDTH: i32 = 1000;
+const HEIGHT: i32 = 1000;
+
+// Dimensions of the camera
+const CAM_WIDTH: i32 = 32;
+const CAM_HEIGHT: i32 = 24;
 
 fn main() {
   // generate the world
@@ -33,18 +39,33 @@ fn main() {
     body.append_child(&canvas)
       .expect("Append canvas to HTML body");
   }
-  // send to renderer
-  let renderer = block_on(render::Render::new(&window, world));
+  // create camera
+  let mut camera = camera::Camera::new(CAM_WIDTH, CAM_HEIGHT);
+  // send to rendere
+  let mut renderer = block_on(render::Render::new(&window, world, CAM_WIDTH, CAM_HEIGHT));
 
   // run event loop
   event_loop.run(move | event, _, control_flow | {
     *control_flow = ControlFlow::Wait;
 
     match event {
+      
       Event::WindowEvent {
-        event: WindowEvent::CloseRequested,
+        ref event,
         ..
-      } => *control_flow = ControlFlow::Exit,
+      } => match event {
+        WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+  
+        WindowEvent::KeyboardInput { input, .. } => {
+          if input.state == ElementState::Pressed {
+            camera.key_pressed(input.virtual_keycode.unwrap());
+          } else if input.state == ElementState::Released {
+            camera.key_released(input.virtual_keycode.unwrap());
+          }
+        },
+        _ => ()
+      },
+
       Event::RedrawRequested (_) => {
         renderer.render();
       },

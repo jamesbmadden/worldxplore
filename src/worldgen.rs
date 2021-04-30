@@ -14,7 +14,7 @@ pub fn generate_perlin (width: i32, height: i32) -> Vec<Vec<f64>> {
   for x in 0..width {
     let mut row: Vec<f64> = Vec::new();
     for y in 0..height {
-      row.push(p_noise.get([x as f64 / width as f64, y as f64 / height as f64, 0.]));
+      row.push(p_noise.get([x as f64 / 16., y as f64 / 16., 0.]));
     }
     world.push(row.iter().cloned().collect());
   }
