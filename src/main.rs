@@ -22,9 +22,7 @@ fn main() {
   let world = worldgen::elevation_to_tiles(worldgen::generate_perlin(WIDTH, HEIGHT));
   // create a window
   let event_loop = EventLoop::new();
-  let window = WindowBuilder::new().build(&event_loop).unwrap();
-  // set window options
-  window.set_title("WorldXPlore Alpha");
+  let window = WindowBuilder::new().with_title("WorldXPlore Alpha").build(&event_loop).unwrap();
   // create a canvas if we're running in web
   #[cfg(feature = "web-sys")]
   {
