@@ -1,5 +1,7 @@
 use std::{borrow::Cow, convert::TryInto, mem};
 
+use crate::camera;
+
 use wgpu::util::DeviceExt;
 use bytemuck::{Pod, Zeroable};
 use image::GenericImageView;
@@ -25,6 +27,9 @@ pub struct Render {
 
   pub vertices: Vec<Vertex>,
   pub index_count: usize,
+
+  pub cam_width: i32,
+  pub cam_height: i32
 }
 
 impl Render {
@@ -32,7 +37,7 @@ impl Render {
   /** 
   * Create an instance of renderer
   */
-  pub async fn new (window: &winit::window::Window, world: Vec<Vec<usize>>, cam_width: i32, cam_height: i32) -> Self {
+  pub async fn new (window: &winit::window::Window, world: &Vec<Vec<usize>>, cam_width: i32, cam_height: i32) -> Self {
 
     let size = window.inner_size();
     // wgpu stuff
@@ -217,7 +222,8 @@ impl Render {
 
     Render {
       surface, device, queue, vertex_buf, index_buf, render_pipeline, swap_chain, bind_group,
-      index_count, vertices
+      index_count, vertices,
+      cam_width, cam_height
     }
 
   }
@@ -225,8 +231,24 @@ impl Render {
   /**
   * Update vertices based on current camera position
   */
-  pub fn update (&self) {
-    todo!();
+  pub fn update (&mut self, world: &Vec<Vec<usize>>, cam: &mut camera::Camera) {
+    // update the camera
+    cam.update();
+
+    // now update local values
+    let (vertices, indices) = gen_vertices(&world, cam.x.floor() as i32, cam.y.floor() as i32, self.cam_width, self.cam_height);
+    self.vertices = vertices;
+    self.index_count = indices.len();
+    self.vertex_buf = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+      label: Some("Vertex Buffer"),
+      contents: bytemuck::cast_slice(&self.vertices),
+      usage: wgpu::BufferUsage::VERTEX
+    });
+    self.index_buf = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+      label: Some("Index Buffer"),
+      contents: bytemuck::cast_slice(&indices),
+      usage: wgpu::BufferUsage::INDEX
+    });
   }
 
   /**
@@ -273,36 +295,38 @@ pub fn gen_vertices (world: &Vec<Vec<usize>>, start_x: i32, start_y: i32, width:
   for x in start_x..(start_x + width) {
     for y in start_y..(start_y + height) {
       let tiletype = world[x as usize][y as usize];
+      let relative_x = (x - start_x) as f32;
+      let relative_y = (y - start_y) as f32;
       // top left bottom left top right triangle
       indices.push(vertices.len().try_into().unwrap());
       vertices.push(Vertex { // top left
-        pos: [ (x as f32 * tile_width) * 2. - 1., 1. - (y as f32 * tile_height) * 2. ],
+        pos: [ (relative_x * tile_width) * 2. - 1., 1. - (relative_y * tile_height) * 2. ],
         tex_coords: [ tiletype as f32 * texture_size, 1. ]
       });
       indices.push(vertices.len().try_into().unwrap());
       vertices.push(Vertex { // bottom left
-        pos: [ (x as f32 * tile_width) * 2. - 1., 1. - ((y as f32 + 1.) * tile_height) * 2. ],
+        pos: [ (relative_x * tile_width) * 2. - 1., 1. - ((relative_y + 1.) * tile_height) * 2. ],
         tex_coords: [ tiletype as f32 * texture_size, 0. ]
       });
       indices.push(vertices.len().try_into().unwrap());
       vertices.push(Vertex { // top right
-        pos: [ ((x as f32 + 1.) * tile_width) * 2. - 1., 1. - (y as f32 * tile_height) * 2. ],
+        pos: [ ((relative_x + 1.) * tile_width) * 2. - 1., 1. - (relative_y * tile_height) * 2. ],
         tex_coords: [ (tiletype as f32 + 1.) * texture_size, 1. ]
       });
       // bottom left bottom right top right triangle
       indices.push(vertices.len().try_into().unwrap());
       vertices.push(Vertex { // bottom left
-        pos: [ (x as f32 * tile_width) * 2. - 1., 1. - ((y as f32 + 1.) * tile_height) * 2. ],
+        pos: [ (relative_x * tile_width) * 2. - 1., 1. - ((relative_y + 1.) * tile_height) * 2. ],
         tex_coords: [ tiletype as f32 * texture_size, 0. ]
       });
       indices.push(vertices.len().try_into().unwrap());
       vertices.push(Vertex { // bottom right
-        pos: [ ((x as f32 + 1.) * tile_width) * 2. - 1., 1. - ((y as f32 + 1.) * tile_height) * 2. ],
+        pos: [ ((relative_x + 1.) * tile_width) * 2. - 1., 1. - ((relative_y + 1.) * tile_height) * 2. ],
         tex_coords: [ (tiletype as f32 + 1.) * texture_size, 0. ]
       });
       indices.push(vertices.len().try_into().unwrap());
       vertices.push(Vertex { // top right
-        pos: [ ((x as f32 + 1.) * tile_width) * 2. - 1., 1. - (y as f32 * tile_height) * 2. ],
+        pos: [ ((relative_x + 1.) * tile_width) * 2. - 1., 1. - (relative_y * tile_height) * 2. ],
         tex_coords: [ (tiletype as f32 + 1.) * texture_size, 1. ]
       });
     }

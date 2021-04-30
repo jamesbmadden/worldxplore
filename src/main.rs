@@ -42,7 +42,7 @@ fn main() {
   // create camera
   let mut camera = camera::Camera::new(CAM_WIDTH, CAM_HEIGHT);
   // send to rendere
-  let mut renderer = block_on(render::Render::new(&window, world, CAM_WIDTH, CAM_HEIGHT));
+  let mut renderer = block_on(render::Render::new(&window, &world, CAM_WIDTH, CAM_HEIGHT));
 
   // run event loop
   event_loop.run(move | event, _, control_flow | {
@@ -67,7 +67,12 @@ fn main() {
       },
 
       Event::RedrawRequested (_) => {
+        renderer.update(&world, &mut camera);
         renderer.render();
+      },
+      Event::MainEventsCleared => {
+        // RedrawRequested will only run once, so we must manually request it
+        window.request_redraw();
       },
       _ => ()
     }
