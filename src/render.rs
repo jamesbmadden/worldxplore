@@ -348,8 +348,9 @@ pub fn gen_vertices (world: &Vec<Vec<usize>>, start_x: i32, start_y: i32, width:
   let tile_height: f32 = 1. / height as f32;
   let texture_size: f32 = 8. / TILESET_WIDTH as f32;
   // iterate through the tiles and generate vertices
-  for x in start_x..(start_x + width) {
-    for y in start_y..(start_y + height) {
+  // one more tile than always visible should be rendered to allow smooth movement
+  for x in start_x..(start_x + width + 1) {
+    for y in start_y..(start_y + height + 1) {
       let tiletype = world[x as usize][y as usize];
       let relative_x = (x - start_x) as f32;
       let relative_y = (y - start_y) as f32;
