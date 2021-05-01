@@ -88,12 +88,12 @@ impl Render {
       step_mode: wgpu::InputStepMode::Vertex,
       attributes: &[
         wgpu::VertexAttribute { // 
-          format: wgpu::VertexFormat::Float2,
+          format: wgpu::VertexFormat::Float32x2,
           offset: 0,
           shader_location: 0
         },
         wgpu::VertexAttribute {
-          format: wgpu::VertexFormat::Float2,
+          format: wgpu::VertexFormat::Float32x2,
           offset: mem::size_of::<[f32; 2]>() as u64,
           shader_location: 1
         }
@@ -165,7 +165,7 @@ impl Render {
     let tex_size = wgpu::Extent3d {
       width: tex_dimensions.0,
       height: tex_dimensions.1,
-      depth: 1
+      depth_or_array_layers: 1
     };
 
     let texture = device.create_texture(&wgpu::TextureDescriptor {
@@ -181,16 +181,16 @@ impl Render {
     });
 
     queue.write_texture(
-      wgpu::TextureCopyView {
+      wgpu::ImageCopyTextureBase {
         texture: &texture,
         mip_level: 0,
         origin: wgpu::Origin3d::ZERO
       },
       tex_img,
-      wgpu::TextureDataLayout {
+      wgpu::ImageDataLayout {
         offset: 0,
-        bytes_per_row: 4 * tex_dimensions.0,
-        rows_per_image: tex_dimensions.1
+        bytes_per_row: Some((4 * tex_dimensions.0).try_into().unwrap()),
+        rows_per_image: None
       },
       tex_size
     );
@@ -257,7 +257,7 @@ impl Render {
       push_constant_ranges: &[]
     });
 
-    let swapchain_format = adapter.get_swap_chain_preferred_format(&surface);
+    let swapchain_format = adapter.get_swap_chain_preferred_format(&surface).unwrap();
 
     let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
       label: None,
@@ -270,7 +270,11 @@ impl Render {
       fragment: Some(wgpu::FragmentState {
         module: &shader,
         entry_point: "fs_main",
-        targets: &[swapchain_format.into()]
+        targets: &[wgpu::ColorTargetState {
+          format: swapchain_format,
+          blend: Some(wgpu::BlendState::ALPHA_BLENDING),
+          write_mask: wgpu::ColorWrite::ALL
+        }]
       }),
       primitive: wgpu::PrimitiveState::default(),
       depth_stencil: None,
@@ -287,7 +291,11 @@ impl Render {
       fragment: Some(wgpu::FragmentState {
         module: &player_shader,
         entry_point: "fs_main",
-        targets: &[swapchain_format.into()]
+        targets: &[wgpu::ColorTargetState {
+          format: swapchain_format,
+          blend: Some(wgpu::BlendState::ALPHA_BLENDING),
+          write_mask: wgpu::ColorWrite::ALL
+        }]
       }),
       primitive: wgpu::PrimitiveState::default(),
       depth_stencil: None,
@@ -358,8 +366,8 @@ impl Render {
     {
       let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
         label: None,
-        color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
-          attachment: &frame.view,
+        color_attachments: &[wgpu::RenderPassColorAttachment {
+          view: &frame.view,
           resolve_target: None,
           ops: wgpu::Operations {
             load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
