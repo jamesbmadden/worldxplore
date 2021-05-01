@@ -159,7 +159,6 @@ impl Render {
     // create texture
     let tex_img_data = image::load_from_memory(include_bytes!("assets/tileset.png")).unwrap();
     let tex_img = tex_img_data.as_rgba8().unwrap();
-    println!("{:?}", tex_img_data.color());
 
     let tex_dimensions = tex_img.dimensions();
 
