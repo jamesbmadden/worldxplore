@@ -49,9 +49,17 @@ impl Camera {
     if self.keys_down.contains(&winit::event::VirtualKeyCode::W) {
       self.y_speed -= 0.02;
     }
-    // move
+    // attempt to move
     self.x += self.x_speed;
+    // check if you can actually move to the position
+    if world[(self.x + 0.5).floor() as usize + (self.width / 2) as usize][self.y.floor() as usize + (self.height / 2) as usize + 2].solid {
+      self.x -= self.x_speed;
+    }
+    // same thing as above
     self.y += self.y_speed;
+    if world[(self.x + 0.5).floor() as usize + (self.width / 2) as usize][self.y.floor() as usize + (self.height / 2) as usize + 2].solid {
+      self.y -= self.y_speed;
+    }
 
     // set in water to false before checking if we are in water
     self.is_swimming = false;
