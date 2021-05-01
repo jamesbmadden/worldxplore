@@ -44,7 +44,10 @@ pub fn elevation_to_tiles (p_map: Vec<Vec<(f64, f64)>>) -> Vec<Vec<tiles::TilePr
       if veg > &0.7 { return tiles::LILYPAD }
       else { return tiles::OCEAN }
     }
-    else if tile < &0.2 { return tiles::SAND }
+    else if tile < &0.2 { 
+      if veg > &0.7 { return tiles::CACTUS }
+      else { return tiles::SAND }
+    }
     else { 
       if veg > &0.7 { return tiles::TREE }
       else { return tiles::GRASS }
