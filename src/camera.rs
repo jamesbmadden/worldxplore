@@ -57,7 +57,8 @@ impl Camera {
     // if move lands us in water, set in water to true
     // adjustments are made to set the comparison point at the centre of the character's feet instead of
     // the top left of the screen
-    if world[(self.x + 0.5).floor() as usize + (self.width / 2) as usize][self.y.floor() as usize + (self.height / 2) as usize + 2] == 0 {
+    // values <= 1 are water varities
+    if world[(self.x + 0.5).floor() as usize + (self.width / 2) as usize][self.y.floor() as usize + (self.height / 2) as usize + 2] <= 1 {
       self.is_swimming = true;
     }
 

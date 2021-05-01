@@ -24,12 +24,18 @@ pub fn generate_perlin (width: i32, height: i32) -> Vec<Vec<f64>> {
 
 /**
 * Convert perlin noise map to game tiles
+* 0: Deep Ocean
+* 1: Ocean
+* 2: Beach
+* 3: Grass
+* 4: Trees
 */
 pub fn elevation_to_tiles (p_map: Vec<Vec<f64>>) -> Vec<Vec<usize>> {
   // map over the map
   p_map.iter().map(|p_row| p_row.iter().map(|tile| {
-    if tile < &0. { return 0 }
-    else if tile < &0.2 { return 1 }
-    else { return 2 }
+    if tile < &-0.3 { return 0 }
+    else if tile < &0. { return 1 }
+    else if tile < &0.2 { return 2 }
+    else { return 3 }
   }).collect()).collect()
 }
