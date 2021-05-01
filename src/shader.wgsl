@@ -1,5 +1,6 @@
 struct VertexOutput {
     [[location(0)]] tex_coord: vec2<f32>;
+    [[location(1)]] light_intensity: vec3<f32>;
     [[builtin(position)]] position: vec4<f32>;
 };
 
@@ -8,6 +9,7 @@ struct Uniforms {
     camera_offset: vec2<f32>;
     is_swimming: i32;
     time: f32;
+    light_intensity: vec3<f32>;
 };
 [[group(1), binding(0)]]
 var uniforms: Uniforms;
@@ -21,6 +23,7 @@ fn vs_main(
     var out: VertexOutput;
     out.position = vec4<f32>(position.x - uniforms.camera_offset.x, position.y + uniforms.camera_offset.y, 0.0, 1.0);
     out.tex_coord = tex_coord;
+    out.light_intensity = uniforms.light_intensity;
     return out;
 }
 
@@ -39,8 +42,9 @@ fn vs_player(
         out.tex_coord = vec2<f32>(tex_coord.x + 8. / 128., tex_coord.y);
     } else {
         out.position = vec4<f32>(position.x, position.y, 0.0, 1.0);
-    out.tex_coord = tex_coord;
+        out.tex_coord = tex_coord;
     }
+    out.light_intensity = uniforms.light_intensity;
     return out;
 }
 
@@ -51,5 +55,5 @@ var f_tex_sampler: sampler;
 
 [[stage(fragment)]]
 fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
-    return textureSample(f_tex_color, f_tex_sampler, in.tex_coord);
+    return textureSample(f_tex_color, f_tex_sampler, in.tex_coord) * vec4<f32>(in.light_intensity.x, in.light_intensity.y, in.light_intensity.z, 1.0);
 }

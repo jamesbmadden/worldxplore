@@ -3,6 +3,8 @@ use bytemuck::{Pod, Zeroable};
 use crate::tiles;
 use crate::render; // for the tileset size constants
 
+use std::f32::consts::PI;
+
 pub struct Player {
   pub keys_down: HashSet<winit::event::VirtualKeyCode>,
   pub width: i32,
@@ -90,7 +92,8 @@ impl Player {
     self.uniforms = Uniforms { 
       translate_vector: [ x_offset * tile_width, y_offset * tile_height ], 
       is_swimming: self.is_swimming.into(),
-      time: self.uniforms.time + 0.01
+      time: self.uniforms.time + 0.01,
+      light_intensity: light_intensity(self.uniforms.time + 0.01)
     };
 
   }
@@ -112,7 +115,8 @@ impl Player {
 pub struct Uniforms {
   pub translate_vector: [f32; 2],
   pub is_swimming: i32,
-  pub time: f32
+  pub time: f32,
+  pub light_intensity: [f32; 3]
 }
 
 impl Uniforms {
@@ -120,11 +124,27 @@ impl Uniforms {
     Uniforms {
       translate_vector: [0., 0.],
       is_swimming: 0,
-      time: 0.
+      time: 0.,
+      light_intensity: light_intensity(0.)
     }
   }
 }
 
+// create a light intensity for the shader based on current time
+pub fn light_intensity (time: f32) -> [f32; 3] {
+
+  let day_length: f32 = 36.; // length of the day (currently a minute)
+
+  let offset_time = 2. * PI / day_length * time; // so that the cycle happens every length of day instead of pi
+
+  let r: f32 = 1_f32.min(0.1_f32.max(offset_time.sin() + 1.)); // r value; sliced sine
+  let g: f32 = 1_f32.min(0.1_f32.max(offset_time.sin() + 0.75)); // g value; sliced sine, make it rise slower for sunrise / sunset
+  let b: f32 = 1_f32.min(0.1_f32.max(offset_time.sin() + 0.5)); // b value; sliced sine, make it rise slowest for sunrise / sunset
+
+  return [r, g, b];
+}
+
+// return the vertices and indices to form player sprite
 pub fn player_vertices (width: i32, height: i32) -> (Vec<render::Vertex>, Vec<u16>) {
 
   let tile_width: f32 = 1. / width as f32;
