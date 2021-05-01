@@ -21,15 +21,20 @@ pub struct Render {
   pub device: wgpu::Device,
   pub queue: wgpu::Queue,
   pub render_pipeline: wgpu::RenderPipeline,
+  pub player_render_pipeline: wgpu::RenderPipeline,
   pub swap_chain: wgpu::SwapChain,
   pub vertex_buf: wgpu::Buffer,
   pub index_buf: wgpu::Buffer,
+  pub player_vertex_buf: wgpu::Buffer,
+  pub player_index_buf: wgpu::Buffer,
   pub uniform_buf: wgpu::Buffer,
   pub bind_group: wgpu::BindGroup,
   pub uniform_bind_group: wgpu::BindGroup,
 
   pub vertices: Vec<Vertex>,
   pub index_count: usize,
+  pub player_vertices: Vec<Vertex>,
+  pub player_index_count: usize,
 
   pub cam_width: i32,
   pub cam_height: i32,
@@ -63,13 +68,19 @@ impl Render {
     }, None).await.expect("Failed to create device");
 
     // make vertex data
-    let (vertices, indices) = gen_vertices(&world, 0, 0, cam_width, cam_height);
+    let (vertices, indices, player_vertices, player_indices) = gen_vertices(&world, 0, 0, cam_width, cam_height);
     let index_count = indices.len();
+    let player_index_count = player_indices.len();
 
     // buffers
     let vertex_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
       label: Some("Vertex Buffer"),
       contents: bytemuck::cast_slice(&vertices),
+      usage: wgpu::BufferUsage::VERTEX
+    });
+    let player_vertex_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+      label: Some("Player Vertex Buffer"),
+      contents: bytemuck::cast_slice(&player_vertices),
       usage: wgpu::BufferUsage::VERTEX
     });
     let vertex_buffers = [wgpu::VertexBufferLayout {
@@ -92,6 +103,11 @@ impl Render {
     let index_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
       label: Some("Index Buffer"),
       contents: bytemuck::cast_slice(&indices),
+      usage: wgpu::BufferUsage::INDEX
+    });
+    let player_index_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+      label: Some("Player Index Buffer"),
+      contents: bytemuck::cast_slice(&player_indices),
       usage: wgpu::BufferUsage::INDEX
     });
 
@@ -127,16 +143,22 @@ impl Render {
       label: Some("Uniform Bind Group")
     });
 
-    // load shader
+    // load shaders
     let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
       label: None,
-      source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("shader.wgsl"))),
+      source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("world.wgsl"))),
+      flags: wgpu::ShaderFlags::all()
+    });
+    let player_shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
+      label: None,
+      source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("player.wgsl"))),
       flags: wgpu::ShaderFlags::all()
     });
 
     // create texture
     let tex_img_data = image::load_from_memory(include_bytes!("assets/tileset.png")).unwrap();
     let tex_img = tex_img_data.as_rgba8().unwrap();
+    println!("{:?}", tex_img_data.color());
 
     let tex_dimensions = tex_img.dimensions();
 
@@ -254,6 +276,23 @@ impl Render {
       depth_stencil: None,
       multisample: wgpu::MultisampleState::default()
     });
+    let player_render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+      label: None,
+      layout: Some(&pipeline_layout),
+      vertex: wgpu::VertexState {
+        module: &player_shader,
+        entry_point: "vs_main",
+        buffers: &vertex_buffers
+      },
+      fragment: Some(wgpu::FragmentState {
+        module: &player_shader,
+        entry_point: "fs_main",
+        targets: &[swapchain_format.into()]
+      }),
+      primitive: wgpu::PrimitiveState::default(),
+      depth_stencil: None,
+      multisample: wgpu::MultisampleState::default()
+    });
 
     let swap_chain = device.create_swap_chain(&surface, &wgpu::SwapChainDescriptor {
       usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
@@ -264,8 +303,9 @@ impl Render {
     });
 
     Render {
-      surface, device, queue, vertex_buf, index_buf, uniform_buf, render_pipeline, swap_chain, bind_group, uniform_bind_group,
-      index_count, vertices,
+      surface, device, queue, render_pipeline, player_render_pipeline, swap_chain, bind_group, uniform_bind_group,
+      vertex_buf, index_buf, player_vertex_buf, player_index_buf, uniform_buf,
+      index_count, vertices, player_index_count, player_vertices,
       cam_width, cam_height,
       prev_x: 0, prev_y: 0
     }
@@ -286,18 +326,18 @@ impl Render {
     // check if values need update
     if rounded_x != self.prev_x || rounded_y != self.prev_y {
       // if so, update local values
-      let (vertices, indices) = gen_vertices(&world, rounded_x, rounded_y, self.cam_width, self.cam_height);
+      let (vertices, _, player_vertices, _) = gen_vertices(&world, rounded_x, rounded_y, self.cam_width, self.cam_height);
       self.vertices = vertices;
-      self.index_count = indices.len();
+      self.player_vertices = player_vertices;
       self.vertex_buf = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("Vertex Buffer"),
         contents: bytemuck::cast_slice(&self.vertices),
         usage: wgpu::BufferUsage::VERTEX
       });
-      self.index_buf = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("Index Buffer"),
-        contents: bytemuck::cast_slice(&indices),
-        usage: wgpu::BufferUsage::INDEX
+      self.player_vertex_buf = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("Player Vertex Buffer"),
+        contents: bytemuck::cast_slice(&self.player_vertices),
+        usage: wgpu::BufferUsage::VERTEX
       });
     }
     // update the uniforms buffer with new data
@@ -327,12 +367,19 @@ impl Render {
         }],
         depth_stencil_attachment: None
       });
+
+      // render world
       rpass.set_pipeline(&self.render_pipeline);
       rpass.set_bind_group(0, &self.bind_group, &[]);
       rpass.set_bind_group(1, &self.uniform_bind_group, &[]);
       rpass.set_index_buffer(self.index_buf.slice(..), wgpu::IndexFormat::Uint16);
       rpass.set_vertex_buffer(0, self.vertex_buf.slice(..));
       rpass.draw_indexed(0..self.index_count as u32, 0, 0..1);
+      // render player
+      rpass.set_pipeline(&self.player_render_pipeline);
+      rpass.set_index_buffer(self.player_index_buf.slice(..), wgpu::IndexFormat::Uint16);
+      rpass.set_vertex_buffer(0, self.player_vertex_buf.slice(..));
+      rpass.draw_indexed(0..self.player_index_count as u32, 0, 0..1);
     }
 
     self.queue.submit(Some(encoder.finish()));
@@ -340,7 +387,10 @@ impl Render {
 
 }
 
-pub fn gen_vertices (world: &Vec<Vec<usize>>, start_x: i32, start_y: i32, width: i32, height: i32) -> (Vec<Vertex>, Vec<u16>) {
+/**
+* Generate vertices and indices for world and player
+*/
+pub fn gen_vertices (world: &Vec<Vec<usize>>, start_x: i32, start_y: i32, width: i32, height: i32) -> (Vec<Vertex>, Vec<u16>, Vec<Vertex>, Vec<u16>) {
   // create a vector to write to
   let mut vertices: Vec<Vertex> = Vec::new();
   let mut indices: Vec<u16> = Vec::new();
@@ -390,5 +440,16 @@ pub fn gen_vertices (world: &Vec<Vec<usize>>, start_x: i32, start_y: i32, width:
       });
     }
   }
-  (vertices.iter().cloned().collect(), indices.iter().cloned().collect())
+  (
+    // world data:
+    vertices.iter().cloned().collect(), indices.iter().cloned().collect(),
+    // player data:
+    vec![ // player vertices
+      Vertex { pos: [ -tile_width, tile_height * 3. ], tex_coords: [ 0., texture_height ] }, // top left
+      Vertex { pos: [ -tile_width, tile_height * -3. ], tex_coords: [ 0., texture_height * 4. ] }, // bottom left
+      Vertex { pos: [ tile_width, tile_height * -3. ], tex_coords: [ texture_width, texture_height * 4. ] }, // bottom right
+      Vertex { pos: [ tile_width, tile_height * 3. ], tex_coords: [ texture_width, texture_height ] } // top right
+    ],
+    vec![ 0, 1, 2, 0, 2, 3 ] // player indices
+  )
 }

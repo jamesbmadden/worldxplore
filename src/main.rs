@@ -15,8 +15,8 @@ const WIDTH: i32 = 1000;
 const HEIGHT: i32 = 1000;
 
 // Dimensions of the camera
-const CAM_WIDTH: i32 = 32;
-const CAM_HEIGHT: i32 = 24;
+const CAM_WIDTH: i32 = 33;
+const CAM_HEIGHT: i32 = 25;
 
 fn main() {
   // create input manager

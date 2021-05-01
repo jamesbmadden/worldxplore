@@ -30,16 +30,16 @@ impl Camera {
     self.y_speed /= 1.2;
 
     if self.keys_down.contains(&winit::event::VirtualKeyCode::A) {
-      self.x_speed -= 0.1;
+      self.x_speed -= 0.02;
     }
     if self.keys_down.contains(&winit::event::VirtualKeyCode::D) {
-      self.x_speed += 0.1;
+      self.x_speed += 0.02;
     }
     if self.keys_down.contains(&winit::event::VirtualKeyCode::S) {
-      self.y_speed += 0.1;
+      self.y_speed += 0.02;
     }
     if self.keys_down.contains(&winit::event::VirtualKeyCode::W) {
-      self.y_speed -= 0.1;
+      self.y_speed -= 0.02;
     }
 
     self.x += self.x_speed;
