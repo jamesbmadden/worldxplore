@@ -43,3 +43,17 @@ pub const TREE: TileProperties = TileProperties {
   swimmable: false,
   slowing: false
 };
+pub const KELP: TileProperties = TileProperties {
+  ts_coord_x: 5,
+  ts_coord_y: 0,
+  solid: false,
+  swimmable: true,
+  slowing: true
+};
+pub const LILYPAD: TileProperties = TileProperties {
+  ts_coord_x: 6,
+  ts_coord_y: 0,
+  solid: false,
+  swimmable: false,
+  slowing: false
+};

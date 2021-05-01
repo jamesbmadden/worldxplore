@@ -36,8 +36,14 @@ pub fn generate_perlin (width: i32, height: i32) -> Vec<Vec<(f64, f64)>> {
 pub fn elevation_to_tiles (p_map: Vec<Vec<(f64, f64)>>) -> Vec<Vec<tiles::TileProperties>> {
   // map over the map
   p_map.iter().map(|p_row| p_row.iter().map(|(tile, veg)| {
-    if tile < &-0.3 { return tiles::DEEP_OCEAN }
-    else if tile < &0. { return tiles::OCEAN }
+    if tile < &-0.3 { 
+      if veg > &0.5 { return tiles::KELP }
+      else { return tiles::DEEP_OCEAN }
+    }
+    else if tile < &0. { 
+      if veg > &0.7 { return tiles::LILYPAD }
+      else { return tiles::OCEAN }
+    }
     else if tile < &0.2 { return tiles::SAND }
     else { 
       if veg > &0.7 { return tiles::TREE }
