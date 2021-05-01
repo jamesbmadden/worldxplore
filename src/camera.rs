@@ -9,7 +9,8 @@ pub struct Camera {
   pub y: f32,
   pub x_speed: f32,
   pub y_speed: f32,
-  pub uniforms: Uniforms
+  pub uniforms: Uniforms,
+  pub is_swimming: bool
 }
 
 impl Camera {
@@ -19,15 +20,21 @@ impl Camera {
       keys_down: HashSet::new(),
       x: 0., y: 0., x_speed: 0., y_speed: 0.,
       width, height,
-      uniforms: Uniforms::default()
+      uniforms: Uniforms::default(),
+      is_swimming: false
     }
   }
 
   // if keys are pressed, update x and y values
-  pub fn update (&mut self) {
+  pub fn update (&mut self, world: &Vec<Vec<usize>>) {
     // movement speed stuff
-    self.x_speed /= 1.2;
-    self.y_speed /= 1.2;
+    if self.is_swimming {
+      self.x_speed /= 1.8;
+      self.y_speed /= 1.8;
+    } else {
+      self.x_speed /= 1.2;
+      self.y_speed /= 1.2;
+    }
 
     if self.keys_down.contains(&winit::event::VirtualKeyCode::A) {
       self.x_speed -= 0.02;
@@ -41,9 +48,18 @@ impl Camera {
     if self.keys_down.contains(&winit::event::VirtualKeyCode::W) {
       self.y_speed -= 0.02;
     }
-
+    // move
     self.x += self.x_speed;
     self.y += self.y_speed;
+
+    // set in water to false before checking if we are in water
+    self.is_swimming = false;
+    // if move lands us in water, set in water to true
+    // adjustments are made to set the comparison point at the centre of the character's feet instead of
+    // the top left of the screen
+    if world[(self.x + 0.5).floor() as usize + (self.width / 2) as usize][self.y.floor() as usize + (self.height / 2) as usize + 2] == 0 {
+      self.is_swimming = true;
+    }
 
     // prevent from raising or lowering the x or y past bounds
     if self.x < 0. {

@@ -68,7 +68,7 @@ impl Render {
     }, None).await.expect("Failed to create device");
 
     // make vertex data
-    let (vertices, indices, player_vertices, player_indices) = gen_vertices(&world, 0, 0, cam_width, cam_height);
+    let (vertices, indices, player_vertices, player_indices) = gen_vertices(&world, 0, 0, cam_width, cam_height, false);
     let index_count = indices.len();
     let player_index_count = player_indices.len();
 
@@ -317,7 +317,7 @@ impl Render {
   */
   pub fn update (&mut self, world: &Vec<Vec<usize>>, cam: &mut camera::Camera) {
     // update the camera
-    cam.update();
+    cam.update(&world);
 
     // round cam position to nearest tile
     let rounded_x = cam.x.floor() as i32;
@@ -326,7 +326,8 @@ impl Render {
     // check if values need update
     if rounded_x != self.prev_x || rounded_y != self.prev_y {
       // if so, update local values
-      let (vertices, _, player_vertices, _) = gen_vertices(&world, rounded_x, rounded_y, self.cam_width, self.cam_height);
+      // pass is swimming because player model depends on whether or not in water
+      let (vertices, _, player_vertices, _) = gen_vertices(&world, rounded_x, rounded_y, self.cam_width, self.cam_height, cam.is_swimming);
       self.vertices = vertices;
       self.player_vertices = player_vertices;
       self.vertex_buf = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -390,7 +391,7 @@ impl Render {
 /**
 * Generate vertices and indices for world and player
 */
-pub fn gen_vertices (world: &Vec<Vec<usize>>, start_x: i32, start_y: i32, width: i32, height: i32) -> (Vec<Vertex>, Vec<u16>, Vec<Vertex>, Vec<u16>) {
+pub fn gen_vertices (world: &Vec<Vec<usize>>, start_x: i32, start_y: i32, width: i32, height: i32, is_swimming: bool) -> (Vec<Vertex>, Vec<u16>, Vec<Vertex>, Vec<u16>) {
   // create a vector to write to
   let mut vertices: Vec<Vertex> = Vec::new();
   let mut indices: Vec<u16> = Vec::new();
@@ -444,11 +445,11 @@ pub fn gen_vertices (world: &Vec<Vec<usize>>, start_x: i32, start_y: i32, width:
     // world data:
     vertices.iter().cloned().collect(), indices.iter().cloned().collect(),
     // player data:
-    vec![ // player vertices
-      Vertex { pos: [ -tile_width, tile_height * 3. ], tex_coords: [ 0., texture_height ] }, // top left
-      Vertex { pos: [ -tile_width, tile_height * -3. ], tex_coords: [ 0., texture_height * 4. ] }, // bottom left
-      Vertex { pos: [ tile_width, tile_height * -3. ], tex_coords: [ texture_width, texture_height * 4. ] }, // bottom right
-      Vertex { pos: [ tile_width, tile_height * 3. ], tex_coords: [ texture_width, texture_height ] } // top right
+    vec![ // player vertices - texture coords depend on whether in water or not for different texture
+      Vertex { pos: [ -tile_width, tile_height * 3. ], tex_coords: if is_swimming { [ texture_width, texture_height ] } else { [ 0., texture_height ] }  }, // top left
+      Vertex { pos: [ -tile_width, tile_height * -3. ], tex_coords: if is_swimming { [ texture_width, texture_height * 4. ] } else { [ 0., texture_height * 4. ] } }, // bottom left
+      Vertex { pos: [ tile_width, tile_height * -3. ], tex_coords: if is_swimming { [ texture_width * 2., texture_height * 4. ] } else { [ texture_width, texture_height * 4. ] } }, // bottom right
+      Vertex { pos: [ tile_width, tile_height * 3. ], tex_coords: if is_swimming { [ texture_width * 2., texture_height ] } else { [ texture_width, texture_height ] } } // top right
     ],
     vec![ 0, 1, 2, 0, 2, 3 ] // player indices
   )
