@@ -8,7 +8,7 @@ use bytemuck::{Pod, Zeroable};
 use image::GenericImageView;
 
 pub const TILESET_WIDTH: i32 = 128;
-pub const TILESET_HEIGHT: i32 = 32;
+pub const TILESET_HEIGHT: i32 = 56;
 
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable, Debug)]
