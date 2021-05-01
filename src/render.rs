@@ -147,12 +147,7 @@ impl Render {
     // load shaders
     let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
       label: None,
-      source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("world.wgsl"))),
-      flags: wgpu::ShaderFlags::all()
-    });
-    let player_shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
-      label: None,
-      source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("player.wgsl"))),
+      source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("shader.wgsl"))),
       flags: wgpu::ShaderFlags::all()
     });
 
@@ -284,12 +279,12 @@ impl Render {
       label: None,
       layout: Some(&pipeline_layout),
       vertex: wgpu::VertexState {
-        module: &player_shader,
-        entry_point: "vs_main",
+        module: &shader,
+        entry_point: "vs_player",
         buffers: &vertex_buffers
       },
       fragment: Some(wgpu::FragmentState {
-        module: &player_shader,
+        module: &shader,
         entry_point: "fs_main",
         targets: &[wgpu::ColorTargetState {
           format: swapchain_format,
