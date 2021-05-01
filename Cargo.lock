@@ -2128,6 +2128,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "winit_input_helper"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "25f90925358446f7b9e52095b01513b8ed9243a2564f140d76bce2243a8fc210"
+dependencies = [
+ "winit",
+]
+
+[[package]]
 name = "wio"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2147,6 +2156,7 @@ dependencies = [
  "rand 0.8.3",
  "wgpu",
  "winit",
+ "winit_input_helper",
 ]
 
 [[package]]

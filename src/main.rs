@@ -7,6 +7,7 @@ use winit::{
   event_loop::{ControlFlow, EventLoop},
   window::WindowBuilder,
 };
+use winit_input_helper::WinitInputHelper;
 use futures::executor::block_on;
 
 // Dimensions of the world
@@ -18,6 +19,8 @@ const CAM_WIDTH: i32 = 32;
 const CAM_HEIGHT: i32 = 24;
 
 fn main() {
+  // create input manager
+  let mut input = WinitInputHelper::new();
   // generate the world
   let world = worldgen::elevation_to_tiles(worldgen::generate_perlin(WIDTH, HEIGHT));
   // create a window
@@ -44,35 +47,26 @@ fn main() {
 
   // run event loop
   event_loop.run(move | event, _, control_flow | {
-    *control_flow = ControlFlow::Wait;
+    //*control_flow = ControlFlow::Wait;
+    if input.update(&event) {
 
-    match event {
-      
-      Event::WindowEvent {
-        ref event,
-        ..
-      } => match event {
-        WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-  
-        WindowEvent::KeyboardInput { input, .. } => {
-          if input.state == ElementState::Pressed {
-            camera.key_pressed(input.virtual_keycode.unwrap());
-          } else if input.state == ElementState::Released {
-            camera.key_released(input.virtual_keycode.unwrap());
-          }
-        },
-        _ => ()
-      },
+      if input.key_released(winit::event::VirtualKeyCode::Escape) || input.quit() {
+        *control_flow = ControlFlow::Exit
+      }
 
-      Event::RedrawRequested (_) => {
-        renderer.update(&world, &mut camera);
-        renderer.render();
-      },
-      Event::MainEventsCleared => {
-        // RedrawRequested will only run once, so we must manually request it
-        window.request_redraw();
-      },
-      _ => ()
+      // camera updates
+      if input.key_pressed(winit::event::VirtualKeyCode::W) { camera.key_pressed(winit::event::VirtualKeyCode::W); }
+      if input.key_pressed(winit::event::VirtualKeyCode::A) { camera.key_pressed(winit::event::VirtualKeyCode::A); }
+      if input.key_pressed(winit::event::VirtualKeyCode::S) { camera.key_pressed(winit::event::VirtualKeyCode::S); }
+      if input.key_pressed(winit::event::VirtualKeyCode::D) { camera.key_pressed(winit::event::VirtualKeyCode::D); }
+      if input.key_released(winit::event::VirtualKeyCode::W) { camera.key_released(winit::event::VirtualKeyCode::W); }
+      if input.key_released(winit::event::VirtualKeyCode::A) { camera.key_released(winit::event::VirtualKeyCode::A); }
+      if input.key_released(winit::event::VirtualKeyCode::S) { camera.key_released(winit::event::VirtualKeyCode::S); }
+      if input.key_released(winit::event::VirtualKeyCode::D) { camera.key_released(winit::event::VirtualKeyCode::D); }
+
+      renderer.update(&world, &mut camera);
+      renderer.render();
+
     }
   });
 }
