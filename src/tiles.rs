@@ -36,3 +36,10 @@ pub const GRASS: TileProperties = TileProperties {
   swimmable: false,
   slowing: false
 };
+pub const TREE: TileProperties = TileProperties {
+  ts_coord_x: 4,
+  ts_coord_y: 0,
+  solid: true,
+  swimmable: false,
+  slowing: false
+};
