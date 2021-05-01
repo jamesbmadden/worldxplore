@@ -34,10 +34,13 @@ fn vs_player(
     // if the player is swimming, add a subtle bobbing efffect
     if (uniforms.is_swimming == 1) {
         out.position = vec4<f32>(position.x, position.y + sin(uniforms.time * 2.) * 0.01, 0.0, 1.0);
+        // use swimming texture instead of regular texture
+        // tileset size is static for now but we'll make it dynamic in the future
+        out.tex_coord = vec2<f32>(tex_coord.x + 8. / 128., tex_coord.y);
     } else {
         out.position = vec4<f32>(position.x, position.y, 0.0, 1.0);
-    }
     out.tex_coord = tex_coord;
+    }
     return out;
 }
 

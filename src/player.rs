@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use bytemuck::{Pod, Zeroable};
 use crate::tiles;
+use crate::render; // for the tileset size constants
 
 pub struct Player {
   pub keys_down: HashSet<winit::event::VirtualKeyCode>,
@@ -122,4 +123,22 @@ impl Uniforms {
       time: 0.
     }
   }
+}
+
+pub fn player_vertices (width: i32, height: i32) -> (Vec<render::Vertex>, Vec<u16>) {
+
+  let tile_width: f32 = 1. / width as f32;
+  let tile_height: f32 = 1. / height as f32;
+  let texture_width: f32 = 8. / render::TILESET_WIDTH as f32;
+  let texture_height: f32 = 8. / render::TILESET_HEIGHT as f32;
+  // player data:
+  ( 
+    vec![ // player vertices - texture coords depend on whether in water or not for different texture
+      render::Vertex { pos: [ -tile_width, tile_height * 3. ], tex_coords: [ 0., texture_height ] }, // top left
+      render::Vertex { pos: [ -tile_width, tile_height * -3. ], tex_coords: [ 0., texture_height * 4. ] }, // bottom left
+      render::Vertex { pos: [ tile_width, tile_height * -3. ], tex_coords: [ texture_width, texture_height * 4. ] }, // bottom right
+      render::Vertex { pos: [ tile_width, tile_height * 3. ], tex_coords: [ texture_width, texture_height ] } // top right
+    ],
+    vec![ 0, 1, 2, 0, 2, 3 ] // player indices
+  )
 }
