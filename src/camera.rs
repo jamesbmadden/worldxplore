@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 use bytemuck::{Pod, Zeroable};
+use crate::tiles;
 
 pub struct Camera {
   pub keys_down: HashSet<winit::event::VirtualKeyCode>,
@@ -26,7 +27,7 @@ impl Camera {
   }
 
   // if keys are pressed, update x and y values
-  pub fn update (&mut self, world: &Vec<Vec<usize>>) {
+  pub fn update (&mut self, world: &Vec<Vec<tiles::TileProperties>>) {
     // movement speed stuff
     if self.is_swimming {
       self.x_speed /= 1.8;
@@ -58,7 +59,7 @@ impl Camera {
     // adjustments are made to set the comparison point at the centre of the character's feet instead of
     // the top left of the screen
     // values <= 1 are water varities
-    if world[(self.x + 0.5).floor() as usize + (self.width / 2) as usize][self.y.floor() as usize + (self.height / 2) as usize + 2] <= 1 {
+    if world[(self.x + 0.5).floor() as usize + (self.width / 2) as usize][self.y.floor() as usize + (self.height / 2) as usize + 2].swimmable {
       self.is_swimming = true;
     }
 

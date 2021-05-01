@@ -1,6 +1,7 @@
 mod worldgen;
 mod render;
 mod camera;
+mod tiles;
 
 use winit::{
   event::{Event, WindowEvent, ElementState},

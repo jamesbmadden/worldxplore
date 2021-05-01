@@ -1,5 +1,6 @@
 use noise::{NoiseFn, Perlin, Seedable};
 use rand::prelude::*;
+use crate::tiles;
 
 /**
 * Create a map of specified size with perlin noise points
@@ -30,12 +31,12 @@ pub fn generate_perlin (width: i32, height: i32) -> Vec<Vec<f64>> {
 * 3: Grass
 * 4: Trees
 */
-pub fn elevation_to_tiles (p_map: Vec<Vec<f64>>) -> Vec<Vec<usize>> {
+pub fn elevation_to_tiles (p_map: Vec<Vec<f64>>) -> Vec<Vec<tiles::TileProperties>> {
   // map over the map
   p_map.iter().map(|p_row| p_row.iter().map(|tile| {
-    if tile < &-0.3 { return 0 }
-    else if tile < &0. { return 1 }
-    else if tile < &0.2 { return 2 }
-    else { return 3 }
+    if tile < &-0.3 { return tiles::DEEP_OCEAN }
+    else if tile < &0. { return tiles::OCEAN }
+    else if tile < &0.2 { return tiles::SAND }
+    else { return tiles::GRASS }
   }).collect()).collect()
 }
