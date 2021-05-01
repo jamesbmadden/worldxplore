@@ -1,6 +1,6 @@
 mod worldgen;
 mod render;
-mod camera;
+mod player;
 mod tiles;
 
 use winit::{
@@ -41,8 +41,8 @@ fn main() {
     body.append_child(&canvas)
       .expect("Append canvas to HTML body");
   }
-  // create camera
-  let mut camera = camera::Camera::new(CAM_WIDTH, CAM_HEIGHT);
+  // create player state
+  let mut player = player::Player::new(CAM_WIDTH, CAM_HEIGHT);
   // create renderer
   let mut renderer = block_on(render::Render::new(&window, &world, CAM_WIDTH, CAM_HEIGHT));
 
@@ -56,16 +56,16 @@ fn main() {
       }
 
       // camera updates
-      if input.key_pressed(winit::event::VirtualKeyCode::W) { camera.key_pressed(winit::event::VirtualKeyCode::W); }
-      if input.key_pressed(winit::event::VirtualKeyCode::A) { camera.key_pressed(winit::event::VirtualKeyCode::A); }
-      if input.key_pressed(winit::event::VirtualKeyCode::S) { camera.key_pressed(winit::event::VirtualKeyCode::S); }
-      if input.key_pressed(winit::event::VirtualKeyCode::D) { camera.key_pressed(winit::event::VirtualKeyCode::D); }
-      if input.key_released(winit::event::VirtualKeyCode::W) { camera.key_released(winit::event::VirtualKeyCode::W); }
-      if input.key_released(winit::event::VirtualKeyCode::A) { camera.key_released(winit::event::VirtualKeyCode::A); }
-      if input.key_released(winit::event::VirtualKeyCode::S) { camera.key_released(winit::event::VirtualKeyCode::S); }
-      if input.key_released(winit::event::VirtualKeyCode::D) { camera.key_released(winit::event::VirtualKeyCode::D); }
+      if input.key_pressed(winit::event::VirtualKeyCode::W) { player.key_pressed(winit::event::VirtualKeyCode::W); }
+      if input.key_pressed(winit::event::VirtualKeyCode::A) { player.key_pressed(winit::event::VirtualKeyCode::A); }
+      if input.key_pressed(winit::event::VirtualKeyCode::S) { player.key_pressed(winit::event::VirtualKeyCode::S); }
+      if input.key_pressed(winit::event::VirtualKeyCode::D) { player.key_pressed(winit::event::VirtualKeyCode::D); }
+      if input.key_released(winit::event::VirtualKeyCode::W) { player.key_released(winit::event::VirtualKeyCode::W); }
+      if input.key_released(winit::event::VirtualKeyCode::A) { player.key_released(winit::event::VirtualKeyCode::A); }
+      if input.key_released(winit::event::VirtualKeyCode::S) { player.key_released(winit::event::VirtualKeyCode::S); }
+      if input.key_released(winit::event::VirtualKeyCode::D) { player.key_released(winit::event::VirtualKeyCode::D); }
 
-      renderer.update(&world, &mut camera);
+      renderer.update(&world, &mut player);
       renderer.render();
 
     }

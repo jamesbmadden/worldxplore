@@ -1,6 +1,6 @@
 use std::{borrow::Cow, convert::TryInto, mem};
 
-use crate::camera;
+use crate::player;
 use crate::tiles;
 
 use wgpu::util::DeviceExt;
@@ -115,7 +115,7 @@ impl Render {
     // uniform only (as of now at least) contains the offset for movement.
     let uniform_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
       label: Some("Uniform Buffer"),
-      contents: bytemuck::cast_slice(&[camera::Uniforms::default()]),
+      contents: bytemuck::cast_slice(&[player::Uniforms::default()]),
       usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST
     });
     let uniform_bg_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -323,19 +323,19 @@ impl Render {
   /**
   * Update vertices based on current camera position
   */
-  pub fn update (&mut self, world: &Vec<Vec<tiles::TileProperties>>, cam: &mut camera::Camera) {
+  pub fn update (&mut self, world: &Vec<Vec<tiles::TileProperties>>, player: &mut player::Player) {
     // update the camera
-    cam.update(world);
+    player.update(world);
 
     // round cam position to nearest tile
-    let rounded_x = cam.x.floor() as i32;
-    let rounded_y = cam.y.floor() as i32;
+    let rounded_x = player.x.floor() as i32;
+    let rounded_y = player.y.floor() as i32;
 
     // check if values need update
     if rounded_x != self.prev_x || rounded_y != self.prev_y {
       // if so, update local values
       // pass is swimming because player model depends on whether or not in water
-      let (vertices, _, player_vertices, _) = gen_vertices(&world, rounded_x, rounded_y, self.cam_width, self.cam_height, cam.is_swimming);
+      let (vertices, _, player_vertices, _) = gen_vertices(&world, rounded_x, rounded_y, self.cam_width, self.cam_height, player.is_swimming);
       self.vertices = vertices;
       self.player_vertices = player_vertices;
       self.vertex_buf = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -350,7 +350,7 @@ impl Render {
       });
     }
     // update the uniforms buffer with new data
-    self.queue.write_buffer(&self.uniform_buf, 0, bytemuck::cast_slice(&[cam.uniforms]));
+    self.queue.write_buffer(&self.uniform_buf, 0, bytemuck::cast_slice(&[player.uniforms]));
     // update previous position
     self.prev_x = rounded_x;
     self.prev_y = rounded_y;

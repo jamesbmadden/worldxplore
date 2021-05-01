@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use bytemuck::{Pod, Zeroable};
 use crate::tiles;
 
-pub struct Camera {
+pub struct Player {
   pub keys_down: HashSet<winit::event::VirtualKeyCode>,
   pub width: i32,
   pub height: i32,
@@ -14,10 +14,10 @@ pub struct Camera {
   pub is_swimming: bool
 }
 
-impl Camera {
+impl Player {
 
   pub fn new (width: i32, height: i32) -> Self {
-    Camera {
+    Player {
       keys_down: HashSet::new(),
       x: 0., y: 0., x_speed: 0., y_speed: 0.,
       width, height,
