@@ -14,15 +14,21 @@ struct Uniforms {
 [[group(1), binding(0)]]
 var uniforms: Uniforms;
 
+fn get_anim_frame_tex_coord(frame1_tex_coord: vec2<f32>, animation_frames: f32) -> vec2<f32> {
+    var frame: f32 = floor(uniforms.time) % animation_frames;
+    return vec2<f32>(frame1_tex_coord.x, frame1_tex_coord.y + 8. / 56. * frame);
+}
+
 [[stage(vertex)]]
 fn vs_main(
     [[location(0)]] position: vec2<f32>, 
     [[location(1)]] tex_coord: vec2<f32>,
+    [[location(2)]] animation_frames: f32,
 ) -> VertexOutput {
 
     var out: VertexOutput;
     out.position = vec4<f32>(position.x - uniforms.camera_offset.x, position.y + uniforms.camera_offset.y, 0.0, 1.0);
-    out.tex_coord = tex_coord;
+    out.tex_coord = get_anim_frame_tex_coord(tex_coord, animation_frames);
     out.light_intensity = uniforms.light_intensity;
     return out;
 }
@@ -31,6 +37,7 @@ fn vs_main(
 fn vs_player(
     [[location(0)]] position: vec2<f32>, 
     [[location(1)]] tex_coord: vec2<f32>,
+    [[location(2)]] animation_frames: f32,
 ) -> VertexOutput {
 
     var out: VertexOutput;

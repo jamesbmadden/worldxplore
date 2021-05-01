@@ -154,10 +154,10 @@ pub fn player_vertices (width: i32, height: i32) -> (Vec<render::Vertex>, Vec<u1
   // player data:
   ( 
     vec![ // player vertices - texture coords depend on whether in water or not for different texture
-      render::Vertex { pos: [ -tile_width, tile_height * 3. ], tex_coords: [ 0., texture_height * 4. ] }, // top left
-      render::Vertex { pos: [ -tile_width, tile_height * -3. ], tex_coords: [ 0., texture_height * 7. ] }, // bottom left
-      render::Vertex { pos: [ tile_width, tile_height * -3. ], tex_coords: [ texture_width, texture_height * 7. ] }, // bottom right
-      render::Vertex { pos: [ tile_width, tile_height * 3. ], tex_coords: [ texture_width, texture_height * 4. ] } // top right
+      render::Vertex { pos: [ -tile_width, tile_height * 3. ], tex_coords: [ 0., texture_height * 4. ], animation_frames: 1. }, // top left
+      render::Vertex { pos: [ -tile_width, tile_height * -3. ], tex_coords: [ 0., texture_height * 7. ], animation_frames: 1. }, // bottom left
+      render::Vertex { pos: [ tile_width, tile_height * -3. ], tex_coords: [ texture_width, texture_height * 7. ], animation_frames: 1. }, // bottom right
+      render::Vertex { pos: [ tile_width, tile_height * 3. ], tex_coords: [ texture_width, texture_height * 4. ], animation_frames: 1. } // top right
     ],
     vec![ 0, 1, 2, 0, 2, 3 ] // player indices
   )

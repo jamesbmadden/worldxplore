@@ -14,7 +14,8 @@ pub const TILESET_HEIGHT: i32 = 56;
 #[derive(Clone, Copy, Pod, Zeroable, Debug)]
 pub struct Vertex {
   pub pos: [f32; 2],
-  pub tex_coords: [f32; 2]
+  pub tex_coords: [f32; 2],
+  pub animation_frames: f32
 }
 
 pub struct Render {
@@ -98,6 +99,11 @@ impl Render {
           format: wgpu::VertexFormat::Float32x2,
           offset: mem::size_of::<[f32; 2]>() as u64,
           shader_location: 1
+        },
+        wgpu::VertexAttribute {
+          format: wgpu::VertexFormat::Float32,
+          offset: mem::size_of::<[f32; 4]>() as u64,
+          shader_location: 2
         }
       ]
     }];
@@ -410,33 +416,39 @@ pub fn gen_vertices (world: &Vec<Vec<tiles::TileProperties>>, start_x: i32, star
       indices.push(vertices.len().try_into().unwrap());
       vertices.push(Vertex { // top left
         pos: [ (relative_x * tile_width) * 2. - 1., 1. - (relative_y * tile_height) * 2. ],
-        tex_coords: [ tiletype.ts_coord_x as f32 * texture_width, tiletype.ts_coord_y as f32 * texture_height ]
+        tex_coords: [ tiletype.ts_coord_x as f32 * texture_width, tiletype.ts_coord_y as f32 * texture_height ],
+        animation_frames: tiletype.animation_frames as f32
       });
       indices.push(vertices.len().try_into().unwrap());
       vertices.push(Vertex { // bottom left
         pos: [ (relative_x * tile_width) * 2. - 1., 1. - ((relative_y + 1.) * tile_height) * 2. ],
-        tex_coords: [ tiletype.ts_coord_x as f32 * texture_width, (tiletype.ts_coord_y as f32 + 1.) * texture_height ]
+        tex_coords: [ tiletype.ts_coord_x as f32 * texture_width, (tiletype.ts_coord_y as f32 + 1.) * texture_height ],
+        animation_frames: tiletype.animation_frames as f32
       });
       indices.push(vertices.len().try_into().unwrap());
       vertices.push(Vertex { // top right
         pos: [ ((relative_x + 1.) * tile_width) * 2. - 1., 1. - (relative_y * tile_height) * 2. ],
-        tex_coords: [ (tiletype.ts_coord_x as f32 + 1.) * texture_width,  tiletype.ts_coord_y as f32 * texture_height ]
+        tex_coords: [ (tiletype.ts_coord_x as f32 + 1.) * texture_width,  tiletype.ts_coord_y as f32 * texture_height ],
+        animation_frames: tiletype.animation_frames as f32
       });
       // bottom left bottom right top right triangle
       indices.push(vertices.len().try_into().unwrap());
       vertices.push(Vertex { // bottom left
         pos: [ (relative_x * tile_width) * 2. - 1., 1. - ((relative_y + 1.) * tile_height) * 2. ],
-        tex_coords: [ tiletype.ts_coord_x as f32 * texture_width, (tiletype.ts_coord_y as f32 + 1.) * texture_height ]
+        tex_coords: [ tiletype.ts_coord_x as f32 * texture_width, (tiletype.ts_coord_y as f32 + 1.) * texture_height ],
+        animation_frames: tiletype.animation_frames as f32
       });
       indices.push(vertices.len().try_into().unwrap());
       vertices.push(Vertex { // bottom right
         pos: [ ((relative_x + 1.) * tile_width) * 2. - 1., 1. - ((relative_y + 1.) * tile_height) * 2. ],
-        tex_coords: [ (tiletype.ts_coord_x as f32 + 1.) * texture_width, (tiletype.ts_coord_y as f32 + 1.) * texture_height ]
+        tex_coords: [ (tiletype.ts_coord_x as f32 + 1.) * texture_width, (tiletype.ts_coord_y as f32 + 1.) * texture_height ],
+        animation_frames: tiletype.animation_frames as f32
       });
       indices.push(vertices.len().try_into().unwrap());
       vertices.push(Vertex { // top right
         pos: [ ((relative_x + 1.) * tile_width) * 2. - 1., 1. - (relative_y * tile_height) * 2. ],
-        tex_coords: [ (tiletype.ts_coord_x as f32 + 1.) * texture_width, tiletype.ts_coord_y as f32 * texture_height ]
+        tex_coords: [ (tiletype.ts_coord_x as f32 + 1.) * texture_width, tiletype.ts_coord_y as f32 * texture_height ],
+        animation_frames: tiletype.animation_frames as f32
       });
     }
   }
