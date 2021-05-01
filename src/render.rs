@@ -7,6 +7,7 @@ use bytemuck::{Pod, Zeroable};
 use image::GenericImageView;
 
 const TILESET_WIDTH: i32 = 128;
+const TILESET_HEIGHT: i32 = 32;
 
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable, Debug)]
@@ -346,7 +347,8 @@ pub fn gen_vertices (world: &Vec<Vec<usize>>, start_x: i32, start_y: i32, width:
   // create some math for rendering tiles
   let tile_width: f32 = 1. / width as f32;
   let tile_height: f32 = 1. / height as f32;
-  let texture_size: f32 = 8. / TILESET_WIDTH as f32;
+  let texture_width: f32 = 8. / TILESET_WIDTH as f32;
+  let texture_height: f32 = 8. / TILESET_HEIGHT as f32;
   // iterate through the tiles and generate vertices
   // one more tile than always visible should be rendered to allow smooth movement
   for x in start_x..(start_x + width + 1) {
@@ -358,33 +360,33 @@ pub fn gen_vertices (world: &Vec<Vec<usize>>, start_x: i32, start_y: i32, width:
       indices.push(vertices.len().try_into().unwrap());
       vertices.push(Vertex { // top left
         pos: [ (relative_x * tile_width) * 2. - 1., 1. - (relative_y * tile_height) * 2. ],
-        tex_coords: [ tiletype as f32 * texture_size, 1. ]
+        tex_coords: [ tiletype as f32 * texture_width, 0. ]
       });
       indices.push(vertices.len().try_into().unwrap());
       vertices.push(Vertex { // bottom left
         pos: [ (relative_x * tile_width) * 2. - 1., 1. - ((relative_y + 1.) * tile_height) * 2. ],
-        tex_coords: [ tiletype as f32 * texture_size, 0. ]
+        tex_coords: [ tiletype as f32 * texture_width, texture_height ]
       });
       indices.push(vertices.len().try_into().unwrap());
       vertices.push(Vertex { // top right
         pos: [ ((relative_x + 1.) * tile_width) * 2. - 1., 1. - (relative_y * tile_height) * 2. ],
-        tex_coords: [ (tiletype as f32 + 1.) * texture_size, 1. ]
+        tex_coords: [ (tiletype as f32 + 1.) * texture_width, 0. ]
       });
       // bottom left bottom right top right triangle
       indices.push(vertices.len().try_into().unwrap());
       vertices.push(Vertex { // bottom left
         pos: [ (relative_x * tile_width) * 2. - 1., 1. - ((relative_y + 1.) * tile_height) * 2. ],
-        tex_coords: [ tiletype as f32 * texture_size, 0. ]
+        tex_coords: [ tiletype as f32 * texture_width, texture_height ]
       });
       indices.push(vertices.len().try_into().unwrap());
       vertices.push(Vertex { // bottom right
         pos: [ ((relative_x + 1.) * tile_width) * 2. - 1., 1. - ((relative_y + 1.) * tile_height) * 2. ],
-        tex_coords: [ (tiletype as f32 + 1.) * texture_size, 0. ]
+        tex_coords: [ (tiletype as f32 + 1.) * texture_width, texture_height ]
       });
       indices.push(vertices.len().try_into().unwrap());
       vertices.push(Vertex { // top right
         pos: [ ((relative_x + 1.) * tile_width) * 2. - 1., 1. - (relative_y * tile_height) * 2. ],
-        tex_coords: [ (tiletype as f32 + 1.) * texture_size, 1. ]
+        tex_coords: [ (tiletype as f32 + 1.) * texture_width, 0. ]
       });
     }
   }
