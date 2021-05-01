@@ -6,6 +6,8 @@ struct VertexOutput {
 [[block]]
 struct Uniforms {
     camera_offset: vec2<f32>;
+    is_swimming: i32;
+    time: f32;
 };
 [[group(1), binding(0)]]
 var uniforms: Uniforms;
@@ -29,7 +31,12 @@ fn vs_player(
 ) -> VertexOutput {
 
     var out: VertexOutput;
-    out.position = vec4<f32>(position.x, position.y, 0.0, 1.0);
+    // if the player is swimming, add a subtle bobbing efffect
+    if (uniforms.is_swimming == 1) {
+        out.position = vec4<f32>(position.x, position.y + sin(uniforms.time * 2.) * 0.01, 0.0, 1.0);
+    } else {
+        out.position = vec4<f32>(position.x, position.y, 0.0, 1.0);
+    }
     out.tex_coord = tex_coord;
     return out;
 }

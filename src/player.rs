@@ -86,7 +86,11 @@ impl Player {
     let tile_width = 2. / self.width as f32;
     let tile_height = 2. / self.height as f32;
     // set as uniforms to be rendered with
-    self.uniforms = Uniforms { translate_vector: [ x_offset * tile_width, y_offset * tile_height ] };
+    self.uniforms = Uniforms { 
+      translate_vector: [ x_offset * tile_width, y_offset * tile_height ], 
+      is_swimming: self.is_swimming.into(),
+      time: self.uniforms.time + 0.01
+    };
 
   }
 
@@ -105,13 +109,17 @@ impl Player {
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable, Debug)]
 pub struct Uniforms {
-  pub translate_vector: [f32; 2]
+  pub translate_vector: [f32; 2],
+  pub is_swimming: i32,
+  pub time: f32
 }
 
 impl Uniforms {
   pub fn default() -> Self {
     Uniforms {
-      translate_vector: [0., 0.]
+      translate_vector: [0., 0.],
+      is_swimming: 0,
+      time: 0.
     }
   }
 }
