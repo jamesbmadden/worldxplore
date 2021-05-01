@@ -137,9 +137,9 @@ pub fn light_intensity (time: f32) -> [f32; 3] {
 
   let offset_time = 2. * PI / day_length * time; // so that the cycle happens every length of day instead of pi
 
-  let r: f32 = 1_f32.min(0.1_f32.max(offset_time.sin() + 1.)); // r value; sliced sine
-  let g: f32 = 1_f32.min(0.1_f32.max(offset_time.sin() + 0.75)); // g value; sliced sine, make it rise slower for sunrise / sunset
-  let b: f32 = 1_f32.min(0.1_f32.max(offset_time.sin() + 0.5)); // b value; sliced sine, make it rise slowest for sunrise / sunset
+  let r: f32 = 1_f32.min(0.03_f32.max(offset_time.sin() + 1.)); // r value; sliced sine
+  let g: f32 = 1_f32.min(0.06_f32.max(offset_time.sin() + 0.9)); // g value; sliced sine, make it rise slower for sunrise / sunset
+  let b: f32 = 1_f32.min(0.1_f32.max(offset_time.sin() + 0.8)); // b value; sliced sine, make it rise slowest for sunrise / sunset
 
   return [r, g, b];
 }
