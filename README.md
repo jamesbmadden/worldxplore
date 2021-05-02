@@ -17,3 +17,5 @@ WASD controls can be used to move the character around the world. Interacting wi
 | Linux    | 🤷 Untested, Should Work |
 | Android  | ❌ Not Yet Supported |
 | iOS      | ❌ Not Yet Supported |
+
+Compiled MacOS bundles in .app format are available under [releases](https://github.com/jamesbmadden/worldxplore/releases). Windows and Linux should be able to compile, but it is not tested.
