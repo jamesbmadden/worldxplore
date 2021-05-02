@@ -67,7 +67,7 @@ pub const KELP: TileProperties = TileProperties {
 pub const LILYPAD: TileProperties = TileProperties {
   ts_coord_x: 6,
   ts_coord_y: 0,
-  animation_frames: 1,
+  animation_frames: 4,
   solid: false,
   swimmable: false,
   slowing: false,
