@@ -20,6 +20,8 @@ const CAM_WIDTH: i32 = 33;
 const CAM_HEIGHT: i32 = 25;
 
 fn main() {
+  #[cfg(feature = "web-sys")]
+  onsole_error_panic_hook::set_once();
   // create input manager
   let mut input = WinitInputHelper::new();
   // generate the world
