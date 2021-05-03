@@ -58,7 +58,7 @@ pub const TREE: TileProperties = TileProperties {
 pub const KELP: TileProperties = TileProperties {
   ts_coord_x: 5,
   ts_coord_y: 0,
-  animation_frames: 1,
+  animation_frames: 4,
   solid: false,
   swimmable: true,
   slowing: true,
