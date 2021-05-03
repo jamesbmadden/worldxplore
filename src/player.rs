@@ -17,7 +17,8 @@ pub struct Player {
   pub uniforms: Uniforms,
   pub is_swimming: bool,
   pub health: f32,
-  pub max_health: f32
+  pub max_health: f32,
+  pub paused: bool
 }
 
 impl Player {
@@ -29,12 +30,37 @@ impl Player {
       width, height,
       uniforms: Uniforms::default(),
       is_swimming: false,
-      health: 6., max_health: 6.
+      health: 6., max_health: 6.,
+      paused: false
     }
   }
 
   // if keys are pressed, update x and y values
   pub fn update (&mut self, world: &Vec<Vec<tiles::TileProperties>>) {
+    
+    // only update the player position if the game is paused
+    if !self.paused {
+      self.move_character(world);
+      self.uniforms.time += 0.01;
+    }
+
+    // make transforms for how much to offset tiles for smoother scrolling
+    let x_offset = self.x as f32 % 1.;
+    let y_offset = self.y as f32 % 1.;
+    // coordinate space is -1.0 to 1.0, so size should be double as big as 1 / size
+    let tile_width = 2. / self.width as f32;
+    let tile_height = 2. / self.height as f32;
+    // set as uniforms to be rendered with
+    self.uniforms = Uniforms { 
+      translate_vector: [ x_offset * tile_width, y_offset * tile_height ], 
+      is_swimming: self.is_swimming.into(),
+      time: self.uniforms.time,
+      light_intensity: light_intensity(self.uniforms.time)
+    };
+
+  }
+
+  pub fn move_character (&mut self, world: &Vec<Vec<tiles::TileProperties>>) {
     // movement speed stuff
     if self.is_swimming {
       self.x_speed /= 1.8;
@@ -85,21 +111,6 @@ impl Player {
     if self.y < 0. {
       self.y = 0.;
     }
-
-    // make transforms for how much to offset tiles for smoother scrolling
-    let x_offset = self.x as f32 % 1.;
-    let y_offset = self.y as f32 % 1.;
-    // coordinate space is -1.0 to 1.0, so size should be double as big as 1 / size
-    let tile_width = 2. / self.width as f32;
-    let tile_height = 2. / self.height as f32;
-    // set as uniforms to be rendered with
-    self.uniforms = Uniforms { 
-      translate_vector: [ x_offset * tile_width, y_offset * tile_height ], 
-      is_swimming: self.is_swimming.into(),
-      time: self.uniforms.time + 0.01,
-      light_intensity: light_intensity(self.uniforms.time + 0.01)
-    };
-
   }
 
   // key pressed, add it to keys down

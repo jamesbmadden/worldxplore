@@ -367,27 +367,32 @@ impl Render {
     // update the camera
     player.update(world);
 
-    // round cam position to nearest tile
-    let rounded_x = player.x.floor() as i32;
-    let rounded_y = player.y.floor() as i32;
+    // only update the tiles if the game is paused
+    if !player.paused {
+      // round cam position to nearest tile
+      let rounded_x = player.x.floor() as i32;
+      let rounded_y = player.y.floor() as i32;
 
-    // check if values need update
-    if rounded_x != self.prev_x || rounded_y != self.prev_y {
-      // if so, update local values
-      // pass is swimming because player model depends on whether or not in water
-      let (vertices, _) = gen_vertices(&world, rounded_x, rounded_y, self.cam_width, self.cam_height);
-      self.vertices = vertices;
-      self.vertex_buf = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("Vertex Buffer"),
-        contents: bytemuck::cast_slice(&self.vertices),
-        usage: wgpu::BufferUsage::VERTEX
-      });
+      // check if values need update
+      if rounded_x != self.prev_x || rounded_y != self.prev_y {
+        // if so, update local values
+        // pass is swimming because player model depends on whether or not in water
+        let (vertices, _) = gen_vertices(&world, rounded_x, rounded_y, self.cam_width, self.cam_height);
+        self.vertices = vertices;
+        self.vertex_buf = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+          label: Some("Vertex Buffer"),
+          contents: bytemuck::cast_slice(&self.vertices),
+          usage: wgpu::BufferUsage::VERTEX
+        });
+      }
+      // update the uniforms buffer with new data
+      self.queue.write_buffer(&self.uniform_buf, 0, bytemuck::cast_slice(&[player.uniforms]));
+      // update previous position
+      self.prev_x = rounded_x;
+      self.prev_y = rounded_y;
     }
-    // update the uniforms buffer with new data
-    self.queue.write_buffer(&self.uniform_buf, 0, bytemuck::cast_slice(&[player.uniforms]));
-    // update previous position
-    self.prev_x = rounded_x;
-    self.prev_y = rounded_y;
+
+    
   }
 
   /**
