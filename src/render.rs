@@ -24,11 +24,14 @@ pub struct Render {
   pub queue: wgpu::Queue,
   pub render_pipeline: wgpu::RenderPipeline,
   pub player_render_pipeline: wgpu::RenderPipeline,
+  pub ui_render_pipeline: wgpu::RenderPipeline,
   pub swap_chain: wgpu::SwapChain,
   pub vertex_buf: wgpu::Buffer,
   pub index_buf: wgpu::Buffer,
   pub player_vertex_buf: wgpu::Buffer,
   pub player_index_buf: wgpu::Buffer,
+  pub ui_vertex_buf: wgpu::Buffer,
+  pub ui_index_buf: wgpu::Buffer,
   pub uniform_buf: wgpu::Buffer,
   pub bind_group: wgpu::BindGroup,
   pub uniform_bind_group: wgpu::BindGroup,
@@ -37,6 +40,8 @@ pub struct Render {
   pub index_count: usize,
   pub player_vertices: Vec<Vertex>,
   pub player_index_count: usize,
+  pub ui_vertices: Vec<Vertex>,
+  pub ui_index_count: usize,
 
   pub cam_width: i32,
   pub cam_height: i32,
@@ -50,7 +55,7 @@ impl Render {
   /** 
   * Create an instance of renderer
   */
-  pub async fn new (window: &winit::window::Window, world: &Vec<Vec<tiles::TileProperties>>, cam_width: i32, cam_height: i32) -> Self {
+  pub async fn new (window: &winit::window::Window, world: &Vec<Vec<tiles::TileProperties>>, play: &player::Player,  cam_width: i32, cam_height: i32) -> Self {
 
     let size = window.inner_size();
     // wgpu stuff
@@ -72,8 +77,10 @@ impl Render {
     // make vertex data
     let (vertices, indices) = gen_vertices(&world, 0, 0, cam_width, cam_height);
     let (player_vertices, player_indices) = player::player_vertices(cam_width, cam_height);
+    let (ui_vertices, ui_indices) = play.gen_ui_vertices();
     let index_count = indices.len();
     let player_index_count = player_indices.len();
+    let ui_index_count = ui_indices.len();
 
     // buffers
     let vertex_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -84,6 +91,11 @@ impl Render {
     let player_vertex_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
       label: Some("Player Vertex Buffer"),
       contents: bytemuck::cast_slice(&player_vertices),
+      usage: wgpu::BufferUsage::VERTEX
+    });
+    let ui_vertex_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+      label: Some("UI Vertex Buffer"),
+      contents: bytemuck::cast_slice(&ui_vertices),
       usage: wgpu::BufferUsage::VERTEX
     });
     let vertex_buffers = [wgpu::VertexBufferLayout {
@@ -116,6 +128,11 @@ impl Render {
     let player_index_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
       label: Some("Player Index Buffer"),
       contents: bytemuck::cast_slice(&player_indices),
+      usage: wgpu::BufferUsage::INDEX
+    });
+    let ui_index_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+      label: Some("Player Index Buffer"),
+      contents: bytemuck::cast_slice(&ui_indices),
       usage: wgpu::BufferUsage::INDEX
     });
 
@@ -303,6 +320,27 @@ impl Render {
       depth_stencil: None,
       multisample: wgpu::MultisampleState::default()
     });
+    let ui_render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+      label: None,
+      layout: Some(&pipeline_layout),
+      vertex: wgpu::VertexState {
+        module: &shader,
+        entry_point: "vs_ui",
+        buffers: &vertex_buffers
+      },
+      fragment: Some(wgpu::FragmentState {
+        module: &shader,
+        entry_point: "fs_main",
+        targets: &[wgpu::ColorTargetState {
+          format: swapchain_format,
+          blend: Some(wgpu::BlendState::ALPHA_BLENDING),
+          write_mask: wgpu::ColorWrite::ALL
+        }]
+      }),
+      primitive: wgpu::PrimitiveState::default(),
+      depth_stencil: None,
+      multisample: wgpu::MultisampleState::default()
+    });
 
     let swap_chain = device.create_swap_chain(&surface, &wgpu::SwapChainDescriptor {
       usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
@@ -313,9 +351,9 @@ impl Render {
     });
 
     Render {
-      surface, device, queue, render_pipeline, player_render_pipeline, swap_chain, bind_group, uniform_bind_group,
-      vertex_buf, index_buf, player_vertex_buf, player_index_buf, uniform_buf,
-      index_count, vertices, player_index_count, player_vertices,
+      surface, device, queue, render_pipeline, player_render_pipeline, ui_render_pipeline, swap_chain, bind_group, uniform_bind_group,
+      vertex_buf, index_buf, player_vertex_buf, player_index_buf, ui_vertex_buf, ui_index_buf, uniform_buf,
+      index_count, vertices, player_index_count, player_vertices, ui_index_count, ui_vertices,
       cam_width, cam_height,
       prev_x: 0, prev_y: 0
     }
@@ -385,6 +423,11 @@ impl Render {
       rpass.set_index_buffer(self.player_index_buf.slice(..), wgpu::IndexFormat::Uint16);
       rpass.set_vertex_buffer(0, self.player_vertex_buf.slice(..));
       rpass.draw_indexed(0..self.player_index_count as u32, 0, 0..1);
+      // render UI
+      rpass.set_pipeline(&self.ui_render_pipeline);
+      rpass.set_index_buffer(self.ui_index_buf.slice(..), wgpu::IndexFormat::Uint16);
+      rpass.set_vertex_buffer(0, self.ui_vertex_buf.slice(..));
+      rpass.draw_indexed(0..self.ui_index_count as u32, 0, 0..1);
     }
 
     self.queue.submit(Some(encoder.finish()));

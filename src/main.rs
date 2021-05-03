@@ -46,7 +46,7 @@ fn main() {
   // create player state
   let mut player = player::Player::new(CAM_WIDTH, CAM_HEIGHT);
   // create renderer
-  let mut renderer = block_on(render::Render::new(&window, &world, CAM_WIDTH, CAM_HEIGHT));
+  let mut renderer = block_on(render::Render::new(&window, &world, &player, CAM_WIDTH, CAM_HEIGHT));
 
   // run event loop
   event_loop.run(move | event, _, control_flow | {

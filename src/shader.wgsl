@@ -34,6 +34,20 @@ fn vs_main(
 }
 
 [[stage(vertex)]]
+fn vs_ui(
+    [[location(0)]] position: vec2<f32>, 
+    [[location(1)]] tex_coord: vec2<f32>,
+    [[location(2)]] animation_frames: f32,
+) -> VertexOutput {
+
+    var out: VertexOutput;
+    out.position = vec4<f32>(position.x, position.y, 0.0, 1.0);
+    out.tex_coord = get_anim_frame_tex_coord(tex_coord, animation_frames);
+    out.light_intensity = vec3<f32>(1.0, 1.0, 1.0);
+    return out;
+}
+
+[[stage(vertex)]]
 fn vs_player(
     [[location(0)]] position: vec2<f32>, 
     [[location(1)]] tex_coord: vec2<f32>,

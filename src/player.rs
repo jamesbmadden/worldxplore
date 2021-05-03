@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::convert::TryInto;
 use bytemuck::{Pod, Zeroable};
 use crate::tiles;
 use crate::render; // for the tileset size constants
@@ -14,7 +15,9 @@ pub struct Player {
   pub x_speed: f32,
   pub y_speed: f32,
   pub uniforms: Uniforms,
-  pub is_swimming: bool
+  pub is_swimming: bool,
+  pub health: f32,
+  pub max_health: f32
 }
 
 impl Player {
@@ -25,7 +28,8 @@ impl Player {
       x: 0., y: 0., x_speed: 0., y_speed: 0.,
       width, height,
       uniforms: Uniforms::default(),
-      is_swimming: false
+      is_swimming: false,
+      health: 6., max_health: 6.
     }
   }
 
@@ -105,6 +109,34 @@ impl Player {
   // key released, add it to keys down
   pub fn key_released (&mut self, key: winit::event::VirtualKeyCode) {
     self.keys_down.remove(&key);
+  }
+
+  pub fn gen_ui_vertices (&self) -> (Vec<render::Vertex>, Vec<u16>) {
+
+    let mut vertices: Vec<render::Vertex> = Vec::new();
+    let mut indices: Vec<u16> = Vec::new();
+    // create variables for texture locations
+    let tile_width: f32 = 4. / self.width as f32;
+    let tile_height: f32 = 4. / self.height as f32;
+    let texture_width: f32 = 8. / render::TILESET_WIDTH as f32;
+    let texture_height: f32 = 8. / render::TILESET_HEIGHT as f32;
+
+    // generate health vertices
+    for heart in 0..((self.max_health / 2.).ceil() as i32) {
+      // get positions for heart
+      let heart_x: f32 = -1.0 + tile_width * heart as f32 + (tile_width / 10.);
+      let heart_y: f32 = 1.0 - tile_height / 10.;
+      // add the vertices
+      vertices.push(render::Vertex { pos: [ heart_x, heart_y ], tex_coords: [ texture_width * 2., texture_height * 4. ], animation_frames: 1.}); // top left
+      vertices.push(render::Vertex { pos: [ heart_x, heart_y - tile_height * 9. / 10. ], tex_coords: [ texture_width * 2., texture_height * 5. ], animation_frames: 1.}); // bottom left
+      vertices.push(render::Vertex { pos: [ heart_x + tile_width * 9. / 10., heart_y - tile_height * 9. / 10. ], tex_coords: [ texture_width * 3., texture_height * 5. ], animation_frames: 1.}); // bottom right
+      vertices.push(render::Vertex { pos: [ heart_x + tile_width * 9. / 10., heart_y ], tex_coords: [ texture_width * 3., texture_height * 4. ], animation_frames: 1.}); // top right
+      // add in the indices
+      let len = vertices.len();
+      indices.append(&mut vec![ (len - 4).try_into().unwrap(), (len - 3).try_into().unwrap(), (len - 2).try_into().unwrap(), (len - 4).try_into().unwrap(), (len - 2).try_into().unwrap(), (len - 1).try_into().unwrap() ]);
+    }
+
+    ( vertices.iter().cloned().collect(), indices.iter().cloned().collect() )
   }
 
 }
