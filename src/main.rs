@@ -60,18 +60,14 @@ fn main() {
         *control_flow = ControlFlow::Exit;
       }
 
-      // if game is paused, certain events should be cancelled
-      if !player.paused {
-        // camera updates
-        if input.key_pressed(winit::event::VirtualKeyCode::W) { player.key_pressed(winit::event::VirtualKeyCode::W); }
-        if input.key_pressed(winit::event::VirtualKeyCode::A) { player.key_pressed(winit::event::VirtualKeyCode::A); }
-        if input.key_pressed(winit::event::VirtualKeyCode::S) { player.key_pressed(winit::event::VirtualKeyCode::S); }
-        if input.key_pressed(winit::event::VirtualKeyCode::D) { player.key_pressed(winit::event::VirtualKeyCode::D); }
-        if input.key_released(winit::event::VirtualKeyCode::W) { player.key_released(winit::event::VirtualKeyCode::W); }
-        if input.key_released(winit::event::VirtualKeyCode::A) { player.key_released(winit::event::VirtualKeyCode::A); }
-        if input.key_released(winit::event::VirtualKeyCode::S) { player.key_released(winit::event::VirtualKeyCode::S); }
-        if input.key_released(winit::event::VirtualKeyCode::D) { player.key_released(winit::event::VirtualKeyCode::D); }
-      }
+      if input.key_pressed(winit::event::VirtualKeyCode::W) { player.key_pressed(winit::event::VirtualKeyCode::W); }
+      if input.key_pressed(winit::event::VirtualKeyCode::A) { player.key_pressed(winit::event::VirtualKeyCode::A); }
+      if input.key_pressed(winit::event::VirtualKeyCode::S) { player.key_pressed(winit::event::VirtualKeyCode::S); }
+      if input.key_pressed(winit::event::VirtualKeyCode::D) { player.key_pressed(winit::event::VirtualKeyCode::D); }
+      if input.key_released(winit::event::VirtualKeyCode::W) { player.key_released(winit::event::VirtualKeyCode::W); }
+      if input.key_released(winit::event::VirtualKeyCode::A) { player.key_released(winit::event::VirtualKeyCode::A); }
+      if input.key_released(winit::event::VirtualKeyCode::S) { player.key_released(winit::event::VirtualKeyCode::S); }
+      if input.key_released(winit::event::VirtualKeyCode::D) { player.key_released(winit::event::VirtualKeyCode::D); }
 
       renderer.update(&world, &mut player);
       renderer.render();
