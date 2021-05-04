@@ -131,7 +131,7 @@ impl Render {
       usage: wgpu::BufferUsage::INDEX
     });
     let ui_index_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-      label: Some("Player Index Buffer"),
+      label: Some("UI Index Buffer"),
       contents: bytemuck::cast_slice(&ui_indices),
       usage: wgpu::BufferUsage::INDEX
     });
@@ -391,6 +391,22 @@ impl Render {
       self.prev_x = rounded_x;
       self.prev_y = rounded_y;
     }
+
+
+    // update UI vertices
+    let (ui_vertices, ui_indices) = player.gen_ui_vertices();
+    self.ui_vertices = ui_vertices;
+    self.ui_index_count = ui_indices.len();
+    self.ui_vertex_buf = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+      label: Some("UI Vertex Buffer"),
+      contents: bytemuck::cast_slice(&self.ui_vertices),
+      usage: wgpu::BufferUsage::VERTEX
+    });
+    self.ui_index_buf = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+      label: Some("UI Index Buffer"),
+      contents: bytemuck::cast_slice(&ui_indices),
+      usage: wgpu::BufferUsage::INDEX
+    });
 
     
   }
