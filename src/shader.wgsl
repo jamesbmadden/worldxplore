@@ -16,7 +16,7 @@ var uniforms: Uniforms;
 
 fn get_anim_frame_tex_coord(frame1_tex_coord: vec2<f32>, animation_frames: f32) -> vec2<f32> {
     var frame: f32 = floor(uniforms.time) % animation_frames;
-    return vec2<f32>(frame1_tex_coord.x, frame1_tex_coord.y + 8. / 56. * frame);
+    return vec2<f32>(frame1_tex_coord.x, frame1_tex_coord.y + 8. / 80. * frame);
 }
 
 [[stage(vertex)]]
