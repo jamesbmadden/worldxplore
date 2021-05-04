@@ -165,8 +165,7 @@ impl Player {
         children: vec![
           ui::Label { pos: [0., 0.5], text: String::from("Paused"), size_x: tile_width, size_y: tile_height }.gen_vertices(),
           ui::Button { pos: [0., 0.], label: String::from("Resume"), click: || { self.paused = false; } }.gen_vertices(&mouse_pos, mouse_down),
-          ui::Button { pos: [0., -0.2], label: String::from("Quit"), click: || { *control_flow = winit::event_loop::ControlFlow::Exit; } }.gen_vertices(&mouse_pos, mouse_down),
-          ui::Label { pos: [0., -0.75], text: format!("x{} y{}", self.x, self.y), size_x: tile_width / 2., size_y: tile_height / 2. }.gen_vertices()
+          ui::Button { pos: [0., -0.2], label: String::from("Quit"), click: || { *control_flow = winit::event_loop::ControlFlow::Exit; } }.gen_vertices(&mouse_pos, mouse_down)
         ]
       }.gen_vertices();
       let index_start: u16 = vertices.len().try_into().unwrap();

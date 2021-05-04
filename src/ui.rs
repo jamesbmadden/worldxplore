@@ -33,10 +33,10 @@ impl<F> Button<F> where F: FnMut() {
 
     let mut vertices: Vec<render::Vertex> = Vec::new();
     // add button texture at specified position
-    let start_x = self.pos[0] - TILE_WIDTH * 2.;
-    let start_y = self.pos[1] + (TILE_HEIGHT / 2.);
-    let end_x = start_x + TILE_WIDTH * 4.;
-    let end_y = start_y - TILE_HEIGHT;
+    let start_x = self.pos[0] - TILE_WIDTH * 3.;
+    let start_y = self.pos[1] + TILE_HEIGHT / 1.5;
+    let end_x = start_x + TILE_WIDTH * 6.;
+    let end_y = start_y - TILE_HEIGHT * 1.5;
     let mut tex_coords: [[f32; 2]; 4] = [
       [TILE_WIDTH * 6., TILE_HEIGHT * 4.],
       [TILE_WIDTH * 6., TILE_HEIGHT * 5.],
