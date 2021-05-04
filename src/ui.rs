@@ -6,8 +6,21 @@ pub const TILE_WIDTH: f32 = 8. / render::TILESET_WIDTH as f32;
 pub const TILE_HEIGHT: f32 = 8. / render::TILESET_HEIGHT as f32;
 
 pub enum InterfaceElement {
-  Button,
-  Label
+  Button {},
+  Label { text: String, pos: [f32; 2], size_x: f32, size_y: f32 },
+  Group { children: Vec<InterfaceElement> }
+}
+
+pub struct Group {
+  pub children: Vec<Label> // will later be changed to actually include any object
+}
+
+impl Group {
+
+  pub fn gen_vertices (&self) -> Vec<render::Vertex> {
+    self.children.iter().flat_map(|child| {child.gen_vertices()}).collect()
+  }
+  
 }
 
 pub struct Button {

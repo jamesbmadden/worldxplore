@@ -161,7 +161,12 @@ impl Player {
       indices.append(&mut vec![ (len - 4).try_into().unwrap(), (len - 3).try_into().unwrap(), (len - 2).try_into().unwrap(), (len - 4).try_into().unwrap(), (len - 2).try_into().unwrap(), (len - 1).try_into().unwrap() ]);
 
       // The pause title
-      let mut pause_label_vertices = ui::Label { pos: [0., 0.], text: String::from("Paused"), size_x: tile_width, size_y: tile_height }.gen_vertices();
+      let mut pause_label_vertices = ui::Group {
+        children: vec![
+          ui::Label { pos: [0., 0.], text: String::from("Paused"), size_x: tile_width, size_y: tile_height },
+          ui::Label { pos: [0., -0.75], text: format!("x: {}, y: {}", self.x, self.y), size_x: tile_width / 2., size_y: tile_height / 2. }
+        ]
+      }.gen_vertices();
       let index_start: u16 = vertices.len().try_into().unwrap();
       let pause_label_length: u16 = pause_label_vertices.len().try_into().unwrap();
       let index_end: u16 = index_start + pause_label_length;
