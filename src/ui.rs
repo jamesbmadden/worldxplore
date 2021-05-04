@@ -21,18 +21,15 @@ impl Group {
   
 }
 
-pub struct Button<F> where F: Fn() {
+pub struct Button<F> where F: FnMut() {
   pub label: String,
   pub pos: [f32; 2],
   pub click: F
 }
 
-impl<F> Button<F> where F: Fn() {
+impl<F> Button<F> where F: FnMut() {
 
-  pub fn gen_vertices (&self, mouse_pos: &[f32; 2], mouse_down: bool) -> Vec<render::Vertex> {
-
-    // run click callback for debug
-    (self.click)();
+  pub fn gen_vertices (&mut self, mouse_pos: &[f32; 2], mouse_down: bool) -> Vec<render::Vertex> {
 
     let mut vertices: Vec<render::Vertex> = Vec::new();
     // add button texture at specified position
@@ -55,6 +52,11 @@ impl<F> Button<F> where F: Fn() {
       tex_coords[1][0] += TILE_WIDTH * 4.;
       tex_coords[2][0] += TILE_WIDTH * 4.;
       tex_coords[3][0] += TILE_WIDTH * 4.;
+      // check if the button is being clicked
+      if mouse_down {
+        // run the closure
+        (self.click)();
+      }
     }
 
     vertices.push(render::Vertex { pos: [ start_x, start_y ], tex_coords: tex_coords[0], animation_frames: 1. }); // top left

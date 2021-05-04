@@ -47,7 +47,7 @@ fn main() {
   // create player state
   let mut player = player::Player::new(CAM_WIDTH, CAM_HEIGHT);
   // create renderer
-  let mut renderer = block_on(render::Render::new(&window, &world, &player, CAM_WIDTH, CAM_HEIGHT));
+  let mut renderer = block_on(render::Render::new(&window, &world, &mut player, CAM_WIDTH, CAM_HEIGHT));
 
   // run event loop
   event_loop.run(move | event, _, control_flow | {
@@ -75,7 +75,7 @@ fn main() {
       // adjust mouse position to the same coordinate system as WGPU
       let relative_mouse_pos: [f32; 2] = [(mouse_x / window.inner_size().width as f32 - 0.5) * 2., (1. - mouse_y / window.inner_size().height as f32 - 0.5) * 2. ]; 
 
-      renderer.update(&world, &mut player, relative_mouse_pos);
+      renderer.update(&world, &mut player, relative_mouse_pos, input.mouse_pressed(0));
       renderer.render();
 
     }
