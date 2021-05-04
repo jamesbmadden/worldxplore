@@ -149,12 +149,23 @@ impl Player {
 
     // if game is paused, add text and buttons
     if self.paused {
+
+      // black background
+      vertices.push(render::Vertex { pos: [ -1., 1. ], tex_coords: [ texture_width * 5., texture_height * 4. ], animation_frames: 1.}); // top left
+      vertices.push(render::Vertex { pos: [ -1., -1. ], tex_coords: [ texture_width * 5., texture_height * 5. ], animation_frames: 1.}); // bottom left
+      vertices.push(render::Vertex { pos: [ 1., -1. ], tex_coords: [ texture_width * 6., texture_height * 5. ], animation_frames: 1.}); // bottom right
+      vertices.push(render::Vertex { pos: [ 1., 1. ], tex_coords: [ texture_width * 6., texture_height * 4. ], animation_frames: 1.}); // top right
+      // add in the indices
+      let mut len = vertices.len();
+      indices.append(&mut vec![ (len - 4).try_into().unwrap(), (len - 3).try_into().unwrap(), (len - 2).try_into().unwrap(), (len - 4).try_into().unwrap(), (len - 2).try_into().unwrap(), (len - 1).try_into().unwrap() ]);
+
+      // The pause title
       vertices.push(render::Vertex { pos: [ -2. * tile_width, tile_height ], tex_coords: [ texture_width * 2., texture_height * 5. ], animation_frames: 1.}); // top left
       vertices.push(render::Vertex { pos: [ -2. * tile_width, -tile_height ], tex_coords: [ texture_width * 2., texture_height * 6. ], animation_frames: 1.}); // bottom left
       vertices.push(render::Vertex { pos: [ 2. * tile_width, -tile_height ], tex_coords: [ texture_width * 6., texture_height * 6. ], animation_frames: 1.}); // bottom right
       vertices.push(render::Vertex { pos: [ 2. * tile_width, tile_height ], tex_coords: [ texture_width * 6., texture_height * 5. ], animation_frames: 1.}); // top right
       // add in the indices
-      let len = vertices.len();
+      len = vertices.len();
       indices.append(&mut vec![ (len - 4).try_into().unwrap(), (len - 3).try_into().unwrap(), (len - 2).try_into().unwrap(), (len - 4).try_into().unwrap(), (len - 2).try_into().unwrap(), (len - 1).try_into().unwrap() ]);
     }
 
