@@ -3,6 +3,7 @@ use std::convert::TryInto;
 use bytemuck::{Pod, Zeroable};
 use crate::tiles;
 use crate::render; // for the tileset size constants
+use crate::ui;
 
 use std::f32::consts::PI;
 
@@ -156,17 +157,19 @@ impl Player {
       vertices.push(render::Vertex { pos: [ 1., -1. ], tex_coords: [ texture_width * 6., texture_height * 5. ], animation_frames: 1.}); // bottom right
       vertices.push(render::Vertex { pos: [ 1., 1. ], tex_coords: [ texture_width * 6., texture_height * 4. ], animation_frames: 1.}); // top right
       // add in the indices
-      let mut len = vertices.len();
+      let len = vertices.len();
       indices.append(&mut vec![ (len - 4).try_into().unwrap(), (len - 3).try_into().unwrap(), (len - 2).try_into().unwrap(), (len - 4).try_into().unwrap(), (len - 2).try_into().unwrap(), (len - 1).try_into().unwrap() ]);
 
       // The pause title
-      vertices.push(render::Vertex { pos: [ -2. * tile_width, tile_height ], tex_coords: [ texture_width * 2., texture_height * 5. ], animation_frames: 1.}); // top left
-      vertices.push(render::Vertex { pos: [ -2. * tile_width, -tile_height ], tex_coords: [ texture_width * 2., texture_height * 6. ], animation_frames: 1.}); // bottom left
-      vertices.push(render::Vertex { pos: [ 2. * tile_width, -tile_height ], tex_coords: [ texture_width * 6., texture_height * 6. ], animation_frames: 1.}); // bottom right
-      vertices.push(render::Vertex { pos: [ 2. * tile_width, tile_height ], tex_coords: [ texture_width * 6., texture_height * 5. ], animation_frames: 1.}); // top right
-      // add in the indices
-      len = vertices.len();
-      indices.append(&mut vec![ (len - 4).try_into().unwrap(), (len - 3).try_into().unwrap(), (len - 2).try_into().unwrap(), (len - 4).try_into().unwrap(), (len - 2).try_into().unwrap(), (len - 1).try_into().unwrap() ]);
+      let mut pause_label_vertices = ui::Label { pos: [0., 0.], text: String::from("Paused"), size_x: tile_width, size_y: tile_height }.gen_vertices();
+      let index_start: u16 = vertices.len().try_into().unwrap();
+      let pause_label_length: u16 = pause_label_vertices.len().try_into().unwrap();
+      let index_end: u16 = index_start + pause_label_length;
+      vertices.append(&mut pause_label_vertices);
+
+      for n in index_start..index_end {
+        indices.push(n);
+      }
     }
 
     ( vertices.iter().cloned().collect(), indices.iter().cloned().collect() )

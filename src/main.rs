@@ -2,6 +2,7 @@ mod worldgen;
 mod render;
 mod player;
 mod tiles;
+mod ui;
 
 use winit::{
   event::{Event, WindowEvent, ElementState},
