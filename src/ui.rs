@@ -39,7 +39,6 @@ impl Label {
     let start_y: f32 = self.pos[1] + self.size_y / 2.;
     // iterate through the characters in our string and return text as vertices
     for (i, character) in self.text.chars().enumerate() {
-      println!("Char {}", character);
       // get the character position on screen
       let char_x = start_x + self.size_x * i as f32;
       let char_y = start_y;
