@@ -163,7 +163,9 @@ impl Player {
       // The pause title
       let mut pause_label_vertices = ui::Group {
         children: vec![
-          ui::Label { pos: [0., 0.], text: String::from("Paused"), size_x: tile_width, size_y: tile_height }.gen_vertices(),
+          ui::Label { pos: [0., 0.5], text: String::from("Paused"), size_x: tile_width, size_y: tile_height }.gen_vertices(),
+          ui::Button { pos: [0., 0.], label: String::from("Resume") }.gen_vertices(),
+          ui::Button { pos: [0., -0.2], label: String::from("Quit") }.gen_vertices(),
           ui::Label { pos: [0., -0.75], text: format!("x{} y{}", self.x, self.y), size_x: tile_width / 2., size_y: tile_height / 2. }.gen_vertices()
         ]
       }.gen_vertices();

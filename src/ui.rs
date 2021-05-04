@@ -9,16 +9,6 @@ pub trait GenVertices {
 pub const TILE_WIDTH: f32 = 8. / render::TILESET_WIDTH as f32;
 pub const TILE_HEIGHT: f32 = 8. / render::TILESET_HEIGHT as f32;
 
-pub enum InterfaceElement {
-  Button {},
-  Label { text: String, pos: [f32; 2], size_x: f32, size_y: f32 },
-  Group { children: Vec<Vec<render::Vertex>> }
-}
-
-impl InterfaceElement {
-  
-}
-
 pub struct Group {
   pub children: Vec<Vec<render::Vertex>> // will later be changed to actually include any object
 }
@@ -34,6 +24,30 @@ impl Group {
 pub struct Button {
   pub label: String,
   pub pos: [f32; 2]
+}
+
+impl Button {
+
+  pub fn gen_vertices (&self) -> Vec<render::Vertex> {
+
+    let mut vertices: Vec<render::Vertex> = Vec::new();
+    // add button texture at specified position
+    let start_x = self.pos[0] - TILE_WIDTH * 2.;
+    let start_y = self.pos[1] + (TILE_HEIGHT / 2.);
+
+    vertices.push(render::Vertex { pos: [ start_x, start_y ], tex_coords: [TILE_WIDTH * 6., TILE_HEIGHT * 4.], animation_frames: 1. }); // top left
+    vertices.push(render::Vertex { pos: [ start_x, start_y - TILE_HEIGHT ], tex_coords: [TILE_WIDTH * 6., TILE_HEIGHT * 5.], animation_frames: 1. }); // bottom left
+    vertices.push(render::Vertex { pos: [ start_x + TILE_WIDTH * 4., start_y - TILE_HEIGHT ], tex_coords: [TILE_WIDTH * 10., TILE_HEIGHT * 5.], animation_frames: 1. }); // bottom right
+    vertices.push(render::Vertex { pos: [ start_x, start_y ], tex_coords: [TILE_WIDTH * 6., TILE_HEIGHT * 4.], animation_frames: 1. }); // top left
+    vertices.push(render::Vertex { pos: [ start_x + TILE_WIDTH * 4., start_y - TILE_HEIGHT ], tex_coords: [TILE_WIDTH * 10., TILE_HEIGHT * 5.], animation_frames: 1. }); // bottom right
+    vertices.push(render::Vertex { pos: [ start_x + TILE_WIDTH * 4., start_y ], tex_coords: [TILE_WIDTH * 10., TILE_HEIGHT * 4.], animation_frames: 1. }); // top right
+    
+    // add label at same position
+    vertices.append(&mut Label { pos: self.pos, text: self.label.clone(), size_x: TILE_WIDTH / 2., size_y: TILE_HEIGHT / 2. }.gen_vertices());
+    // return vertices cloned
+    vertices.iter().cloned().collect()
+  }
+
 }
 
 pub struct Label {
