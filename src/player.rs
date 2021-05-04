@@ -123,7 +123,7 @@ impl Player {
     self.keys_down.remove(&key);
   }
 
-  pub fn gen_ui_vertices (&mut self, mouse_pos: [f32; 2], mouse_down: bool) -> (Vec<render::Vertex>, Vec<u16>) {
+  pub fn gen_ui_vertices (&mut self, mouse_pos: [f32; 2], mouse_down: bool, control_flow: &mut winit::event_loop::ControlFlow) -> (Vec<render::Vertex>, Vec<u16>) {
 
     let mut vertices: Vec<render::Vertex> = Vec::new();
     let mut indices: Vec<u16> = Vec::new();
@@ -165,7 +165,7 @@ impl Player {
         children: vec![
           ui::Label { pos: [0., 0.5], text: String::from("Paused"), size_x: tile_width, size_y: tile_height }.gen_vertices(),
           ui::Button { pos: [0., 0.], label: String::from("Resume"), click: || { self.paused = false; } }.gen_vertices(&mouse_pos, mouse_down),
-          ui::Button { pos: [0., -0.2], label: String::from("Quit"), click: || { println!("quit the game"); } }.gen_vertices(&mouse_pos, mouse_down),
+          ui::Button { pos: [0., -0.2], label: String::from("Quit"), click: || { *control_flow = winit::event_loop::ControlFlow::Exit; } }.gen_vertices(&mouse_pos, mouse_down),
           ui::Label { pos: [0., -0.75], text: format!("x{} y{}", self.x, self.y), size_x: tile_width / 2., size_y: tile_height / 2. }.gen_vertices()
         ]
       }.gen_vertices();

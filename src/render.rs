@@ -77,7 +77,9 @@ impl Render {
     // make vertex data
     let (vertices, indices) = gen_vertices(&world, 0, 0, cam_width, cam_height);
     let (player_vertices, player_indices) = player::player_vertices(cam_width, cam_height);
-    let (ui_vertices, ui_indices) = play.gen_ui_vertices([0., 0.], false);
+    // pass a control flow to be edited
+    let mut control_flow = winit::event_loop::ControlFlow::Wait;
+    let (ui_vertices, ui_indices) = play.gen_ui_vertices([0., 0.], false, &mut control_flow);
     let index_count = indices.len();
     let player_index_count = player_indices.len();
     let ui_index_count = ui_indices.len();
@@ -363,7 +365,7 @@ impl Render {
   /**
   * Update vertices based on current camera position
   */
-  pub fn update (&mut self, world: &Vec<Vec<tiles::TileProperties>>, player: &mut player::Player, mouse_pos: [f32; 2], mouse_down: bool) {
+  pub fn update (&mut self, world: &Vec<Vec<tiles::TileProperties>>, player: &mut player::Player, mouse_pos: [f32; 2], mouse_down: bool, control_flow: &mut winit::event_loop::ControlFlow) {
     // update the camera
     player.update(world);
 
@@ -394,7 +396,7 @@ impl Render {
 
 
     // update UI vertices
-    let (ui_vertices, ui_indices) = player.gen_ui_vertices(mouse_pos, mouse_down);
+    let (ui_vertices, ui_indices) = player.gen_ui_vertices(mouse_pos, mouse_down, control_flow);
     self.ui_vertices = ui_vertices;
     self.ui_index_count = ui_indices.len();
     self.ui_vertex_buf = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
