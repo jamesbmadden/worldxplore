@@ -2,23 +2,31 @@ use crate::render;
 
 use std::convert::TryInto;
 
+pub trait GenVertices {
+  fn gen_vertices (&self) -> Vec<render::Vertex>;
+}
+
 pub const TILE_WIDTH: f32 = 8. / render::TILESET_WIDTH as f32;
 pub const TILE_HEIGHT: f32 = 8. / render::TILESET_HEIGHT as f32;
 
 pub enum InterfaceElement {
   Button {},
   Label { text: String, pos: [f32; 2], size_x: f32, size_y: f32 },
-  Group { children: Vec<InterfaceElement> }
+  Group { children: Vec<Vec<render::Vertex>> }
+}
+
+impl InterfaceElement {
+  
 }
 
 pub struct Group {
-  pub children: Vec<Label> // will later be changed to actually include any object
+  pub children: Vec<Vec<render::Vertex>> // will later be changed to actually include any object
 }
 
 impl Group {
 
   pub fn gen_vertices (&self) -> Vec<render::Vertex> {
-    self.children.iter().flat_map(|child| {child.gen_vertices()}).collect()
+    self.children.iter().flat_map(|child| -> Vec<render::Vertex> {child.iter().cloned().collect()}).collect()
   }
   
 }
