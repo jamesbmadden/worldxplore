@@ -70,7 +70,12 @@ fn main() {
       if input.key_released(winit::event::VirtualKeyCode::S) { player.key_released(winit::event::VirtualKeyCode::S); }
       if input.key_released(winit::event::VirtualKeyCode::D) { player.key_released(winit::event::VirtualKeyCode::D); }
 
-      renderer.update(&world, &mut player);
+      let (mouse_x, mouse_y) = input.mouse().unwrap_or((0., 0.));
+
+      // adjust mouse position to the same coordinate system as WGPU
+      let relative_mouse_pos: [f32; 2] = [(mouse_x / window.inner_size().width as f32 - 0.5) * 2., (1. - mouse_y / window.inner_size().height as f32 - 0.5) * 2. ]; 
+
+      renderer.update(&world, &mut player, relative_mouse_pos);
       renderer.render();
 
     }

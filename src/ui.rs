@@ -21,26 +21,48 @@ impl Group {
   
 }
 
-pub struct Button {
+pub struct Button<F> where F: Fn() {
   pub label: String,
-  pub pos: [f32; 2]
+  pub pos: [f32; 2],
+  pub click: F
 }
 
-impl Button {
+impl<F> Button<F> where F: Fn() {
 
-  pub fn gen_vertices (&self) -> Vec<render::Vertex> {
+  pub fn gen_vertices (&self, mouse_pos: &[f32; 2], mouse_down: bool) -> Vec<render::Vertex> {
+
+    // run click callback for debug
+    (self.click)();
 
     let mut vertices: Vec<render::Vertex> = Vec::new();
     // add button texture at specified position
     let start_x = self.pos[0] - TILE_WIDTH * 2.;
     let start_y = self.pos[1] + (TILE_HEIGHT / 2.);
+    let end_x = start_x + TILE_WIDTH * 4.;
+    let end_y = start_y - TILE_HEIGHT;
+    let mut tex_coords: [[f32; 2]; 4] = [
+      [TILE_WIDTH * 6., TILE_HEIGHT * 4.],
+      [TILE_WIDTH * 6., TILE_HEIGHT * 5.],
+      [TILE_WIDTH * 10., TILE_HEIGHT * 5.],
+      [TILE_WIDTH * 10., TILE_HEIGHT * 4.]
+    ];
 
-    vertices.push(render::Vertex { pos: [ start_x, start_y ], tex_coords: [TILE_WIDTH * 6., TILE_HEIGHT * 4.], animation_frames: 1. }); // top left
-    vertices.push(render::Vertex { pos: [ start_x, start_y - TILE_HEIGHT ], tex_coords: [TILE_WIDTH * 6., TILE_HEIGHT * 5.], animation_frames: 1. }); // bottom left
-    vertices.push(render::Vertex { pos: [ start_x + TILE_WIDTH * 4., start_y - TILE_HEIGHT ], tex_coords: [TILE_WIDTH * 10., TILE_HEIGHT * 5.], animation_frames: 1. }); // bottom right
-    vertices.push(render::Vertex { pos: [ start_x, start_y ], tex_coords: [TILE_WIDTH * 6., TILE_HEIGHT * 4.], animation_frames: 1. }); // top left
-    vertices.push(render::Vertex { pos: [ start_x + TILE_WIDTH * 4., start_y - TILE_HEIGHT ], tex_coords: [TILE_WIDTH * 10., TILE_HEIGHT * 5.], animation_frames: 1. }); // bottom right
-    vertices.push(render::Vertex { pos: [ start_x + TILE_WIDTH * 4., start_y ], tex_coords: [TILE_WIDTH * 10., TILE_HEIGHT * 4.], animation_frames: 1. }); // top right
+
+    // check if mouse is over button
+    if start_x <= mouse_pos[0] && mouse_pos[0] <= end_x && start_y >= mouse_pos[1] && mouse_pos[1] >= end_y {
+      // move the tex coords over to hover style
+      tex_coords[0][0] += TILE_WIDTH * 4.;
+      tex_coords[1][0] += TILE_WIDTH * 4.;
+      tex_coords[2][0] += TILE_WIDTH * 4.;
+      tex_coords[3][0] += TILE_WIDTH * 4.;
+    }
+
+    vertices.push(render::Vertex { pos: [ start_x, start_y ], tex_coords: tex_coords[0], animation_frames: 1. }); // top left
+    vertices.push(render::Vertex { pos: [ start_x, end_y ], tex_coords: tex_coords[1], animation_frames: 1. }); // bottom left
+    vertices.push(render::Vertex { pos: [ end_x, end_y ], tex_coords: tex_coords[2], animation_frames: 1. }); // bottom right
+    vertices.push(render::Vertex { pos: [ start_x, start_y ], tex_coords: tex_coords[0], animation_frames: 1. }); // top left
+    vertices.push(render::Vertex { pos: [ end_x, end_y ], tex_coords: tex_coords[2], animation_frames: 1. }); // bottom right
+    vertices.push(render::Vertex { pos: [ end_x, start_y ], tex_coords: tex_coords[3], animation_frames: 1. }); // top right
     
     // add label at same position
     vertices.append(&mut Label { pos: self.pos, text: self.label.clone(), size_x: TILE_WIDTH / 2., size_y: TILE_HEIGHT / 2. }.gen_vertices());
