@@ -52,6 +52,18 @@ async fn run() {
   // run event loop
   event_loop.run(move | event, _, control_flow | {
     //*control_flow = ControlFlow::Wait;
+    match event {
+      Event::WindowEvent { ref event, window_id } => match event {
+        WindowEvent::Resized(physical_size) => {
+          renderer.resize(*physical_size);
+        },
+        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+          renderer.resize(**new_inner_size);
+        },
+        _ => ()
+      }
+      _ => ()
+    }
     if input.update(&event) {
 
       if input.key_released(winit::event::VirtualKeyCode::Escape) {

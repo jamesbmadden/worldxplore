@@ -50,7 +50,10 @@ impl Player {
   }
 
   // if keys are pressed, update x and y values
-  pub fn update (&mut self, world: &Vec<Vec<tiles::TileProperties>>) {
+  pub fn update (&mut self, world: &Vec<Vec<tiles::TileProperties>>, cam_width: i32, cam_height: i32) {
+
+    self.width = cam_width;
+    self.height = cam_height;
     
     // only update the player position if the game is paused
     if !self.paused {

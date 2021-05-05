@@ -26,6 +26,7 @@ pub struct Render {
   pub player_render_pipeline: wgpu::RenderPipeline,
   pub ui_render_pipeline: wgpu::RenderPipeline,
   pub swap_chain: wgpu::SwapChain,
+  pub swapchain_format: wgpu::TextureFormat,
   pub vertex_buf: wgpu::Buffer,
   pub index_buf: wgpu::Buffer,
   pub player_vertex_buf: wgpu::Buffer,
@@ -47,7 +48,8 @@ pub struct Render {
   pub cam_height: i32,
 
   pub prev_x: i32,
-  pub prev_y: i32
+  pub prev_y: i32,
+  pub force_update: bool
 }
 
 impl Render {
@@ -353,11 +355,11 @@ impl Render {
     });
 
     Render {
-      surface, device, queue, render_pipeline, player_render_pipeline, ui_render_pipeline, swap_chain, bind_group, uniform_bind_group,
+      surface, device, queue, render_pipeline, player_render_pipeline, ui_render_pipeline, swap_chain, swapchain_format, bind_group, uniform_bind_group,
       vertex_buf, index_buf, player_vertex_buf, player_index_buf, ui_vertex_buf, ui_index_buf, uniform_buf,
       index_count, vertices, player_index_count, player_vertices, ui_index_count, ui_vertices,
       cam_width, cam_height,
-      prev_x: 0, prev_y: 0
+      prev_x: 0, prev_y: 0, force_update: false
     }
 
   }
@@ -367,7 +369,7 @@ impl Render {
   */
   pub fn update (&mut self, world: &Vec<Vec<tiles::TileProperties>>, player: &mut player::Player, mouse_pos: [f32; 2], mouse_down: bool, control_flow: &mut winit::event_loop::ControlFlow) {
     // update the camera
-    player.update(world);
+    player.update(world, self.cam_width, self.cam_height);
 
     // only update the tiles if the game is paused
     if !player.paused {
@@ -376,9 +378,8 @@ impl Render {
       let rounded_y = player.y.floor() as i32;
 
       // check if values need update
-      if rounded_x != self.prev_x || rounded_y != self.prev_y {
+      if rounded_x != self.prev_x || rounded_y != self.prev_y || self.force_update {
         // if so, update local values
-        // pass is swimming because player model depends on whether or not in water
         let (vertices, _) = gen_vertices(&world, rounded_x, rounded_y, self.cam_width, self.cam_height);
         self.vertices = vertices;
         self.vertex_buf = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -392,6 +393,7 @@ impl Render {
       // update previous position
       self.prev_x = rounded_x;
       self.prev_y = rounded_y;
+      self.force_update = false;
     }
 
 
@@ -454,6 +456,26 @@ impl Render {
     }
 
     self.queue.submit(Some(encoder.finish()));
+  }
+
+  pub fn resize (&mut self, size: winit::dpi::PhysicalSize<u32>) {
+    // update the camera width
+    let new_cam_height: i32 = 24;
+    // multiplication must be done as floats then converted back to an integer
+    let new_cam_width: i32 = ((size.width as f32 / size.height as f32) * new_cam_height as f32) as i32;
+    // one should be added to include offscreen tiles
+    self.cam_height = new_cam_height + 1;
+    self.cam_width = new_cam_width + 1;
+    // create new swap chain
+    self.swap_chain = self.device.create_swap_chain(&self.surface, &wgpu::SwapChainDescriptor {
+      usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
+      format: self.swapchain_format,
+      width: size.width,
+      height: size.height,
+      present_mode: wgpu::PresentMode::Mailbox
+    });
+
+    self.force_update = true;
   }
 
 }
