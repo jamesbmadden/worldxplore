@@ -203,10 +203,12 @@ impl Player {
   pub fn write_out_gamedata (&self) {
     let gamedata = GameData { health: self.health, max_health: self.max_health, seed: self.seed, x: self.x, y: self.y, time: self.uniforms.time };
     let file_string = serde_yaml::to_string(&gamedata).unwrap();
-    fs::write("gamedata.yaml", &file_string).unwrap();
+    fs::create_dir("worlds").unwrap_or(());
+    fs::write("worlds/gamedata.yaml", &file_string).unwrap();
   }
   pub fn read_gamedata (&self) -> GameData {
-    let file_string = fs::read_to_string("gamedata.yaml").unwrap();
+    let file_string = fs::read_to_string("worlds/gamedata.yaml").unwrap();
+    fs::create_dir("worlds").unwrap_or(());
     let result: GameData = serde_yaml::from_str(&file_string).unwrap();
     println!("{:?}", result);
     result
