@@ -178,7 +178,7 @@ impl Player {
           ui::Label { pos: [0., 0.5], text: String::from("Paused"), size_x: tile_width, size_y: tile_height }.gen_vertices(),
           ui::Button { pos: [0., 0.], label: String::from("Resume"), click: || { self.paused = false; } }.gen_vertices(&mouse_pos, mouse_down),
           ui::Button { pos: [0., -0.2], label: String::from("Save Game"), click: || { self.write_out_gamedata(); } }.gen_vertices(&mouse_pos, mouse_down),
-          ui::Button { pos: [0., -0.4], label: String::from("Load Game"), click: || { println!("Coming Soon"); } }.gen_vertices(&mouse_pos, mouse_down),
+          ui::Button { pos: [0., -0.4], label: String::from("Load Game"), click: || { self.read_gamedata(); } }.gen_vertices(&mouse_pos, mouse_down),
           ui::Button { pos: [0., -0.6], label: String::from("Quit"), click: || { *control_flow = winit::event_loop::ControlFlow::Exit; } }.gen_vertices(&mouse_pos, mouse_down)
         ]
       }.gen_vertices();
@@ -199,6 +199,10 @@ impl Player {
     let gamedata = GameData { health: self.health, max_health: self.max_health, seed: self.seed, x: self.x, y: self.y };
     let file_string = serde_yaml::to_string(&gamedata).unwrap();
     fs::write("gamedata.yaml", &file_string).unwrap();
+  }
+  pub fn read_gamedata (&self) -> GameData {
+    let file_string = fs::read_to_string("gamedata.yaml").unwrap();
+    serde_yaml::from_str(&file_string).unwrap()
   }
 
 }
