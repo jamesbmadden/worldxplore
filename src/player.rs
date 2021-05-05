@@ -31,7 +31,8 @@ pub struct GameData {
   pub y: f32,
   pub health: f32,
   pub max_health: f32,
-  pub seed: u32
+  pub seed: u32,
+  pub time: f32
 }
 
 impl Player {
@@ -196,7 +197,7 @@ impl Player {
   }
 
   pub fn write_out_gamedata (&self) {
-    let gamedata = GameData { health: self.health, max_health: self.max_health, seed: self.seed, x: self.x, y: self.y };
+    let gamedata = GameData { health: self.health, max_health: self.max_health, seed: self.seed, x: self.x, y: self.y, time: self.uniforms.time };
     let file_string = serde_yaml::to_string(&gamedata).unwrap();
     fs::write("gamedata.yaml", &file_string).unwrap();
   }
