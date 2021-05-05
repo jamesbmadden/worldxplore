@@ -26,7 +26,8 @@ fn main() {
   // create input manager
   let mut input = WinitInputHelper::new();
   // generate the world
-  let world = worldgen::elevation_to_tiles(worldgen::generate_perlin(WIDTH, HEIGHT));
+  let seed = rand::random::<u32>();
+  let world = worldgen::elevation_to_tiles(worldgen::generate_perlin(WIDTH, HEIGHT, seed));
   // create a window
   let event_loop = EventLoop::new();
   let window = WindowBuilder::new().with_title("WorldXPlore Alpha").build(&event_loop).unwrap();
@@ -45,7 +46,7 @@ fn main() {
       .expect("Append canvas to HTML body");
   }
   // create player state
-  let mut player = player::Player::new(CAM_WIDTH, CAM_HEIGHT);
+  let mut player = player::Player::new(CAM_WIDTH, CAM_HEIGHT, seed);
   // create renderer
   let mut renderer = block_on(render::Render::new(&window, &world, &mut player, CAM_WIDTH, CAM_HEIGHT));
 

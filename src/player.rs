@@ -1,6 +1,8 @@
 use std::collections::HashSet;
 use std::convert::TryInto;
+use std::fs;
 use bytemuck::{Pod, Zeroable};
+use serde::{Serialize, Deserialize};
 use crate::tiles;
 use crate::render; // for the tileset size constants
 use crate::ui;
@@ -19,16 +21,26 @@ pub struct Player {
   pub is_swimming: bool,
   pub health: f32,
   pub max_health: f32,
-  pub paused: bool
+  pub paused: bool,
+  pub seed: u32
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct GameData {
+  pub x: f32,
+  pub y: f32,
+  pub health: f32,
+  pub max_health: f32,
+  pub seed: u32
 }
 
 impl Player {
 
-  pub fn new (width: i32, height: i32) -> Self {
+  pub fn new (width: i32, height: i32, seed: u32) -> Self {
     Player {
       keys_down: HashSet::new(),
       x: 0., y: 0., x_speed: 0., y_speed: 0.,
-      width, height,
+      width, height, seed,
       uniforms: Uniforms::default(),
       is_swimming: false,
       health: 6., max_health: 6.,
@@ -165,7 +177,9 @@ impl Player {
         children: vec![
           ui::Label { pos: [0., 0.5], text: String::from("Paused"), size_x: tile_width, size_y: tile_height }.gen_vertices(),
           ui::Button { pos: [0., 0.], label: String::from("Resume"), click: || { self.paused = false; } }.gen_vertices(&mouse_pos, mouse_down),
-          ui::Button { pos: [0., -0.2], label: String::from("Quit"), click: || { *control_flow = winit::event_loop::ControlFlow::Exit; } }.gen_vertices(&mouse_pos, mouse_down)
+          ui::Button { pos: [0., -0.2], label: String::from("Save Game"), click: || { self.write_out_gamedata(); } }.gen_vertices(&mouse_pos, mouse_down),
+          ui::Button { pos: [0., -0.4], label: String::from("Load Game"), click: || { println!("Coming Soon"); } }.gen_vertices(&mouse_pos, mouse_down),
+          ui::Button { pos: [0., -0.6], label: String::from("Quit"), click: || { *control_flow = winit::event_loop::ControlFlow::Exit; } }.gen_vertices(&mouse_pos, mouse_down)
         ]
       }.gen_vertices();
       let index_start: u16 = vertices.len().try_into().unwrap();
@@ -179,6 +193,12 @@ impl Player {
     }
 
     ( vertices.iter().cloned().collect(), indices.iter().cloned().collect() )
+  }
+
+  pub fn write_out_gamedata (&self) {
+    let gamedata = GameData { health: self.health, max_health: self.max_health, seed: self.seed, x: self.x, y: self.y };
+    let file_string = serde_yaml::to_string(&gamedata).unwrap();
+    fs::write("gamedata.yaml", &file_string).unwrap();
   }
 
 }
