@@ -23,7 +23,8 @@ pub struct Player {
   pub health: f32,
   pub max_health: f32,
   pub paused: bool,
-  pub seed: u32
+  pub seed: u32,
+  pub world_name: String
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -46,7 +47,8 @@ impl Player {
       uniforms: Uniforms::default(),
       is_swimming: false,
       health: 6., max_health: 6.,
-      paused: false
+      paused: false,
+      world_name: String::from("New Game")
     }
   }
 
@@ -204,10 +206,10 @@ impl Player {
     let gamedata = GameData { health: self.health, max_health: self.max_health, seed: self.seed, x: self.x, y: self.y, time: self.uniforms.time };
     let file_string = serde_yaml::to_string(&gamedata).unwrap();
     fs::create_dir("worlds").unwrap_or(());
-    fs::write("worlds/gamedata.yaml", &file_string).unwrap();
+    fs::write(format!("worlds/{}.yaml", self.world_name), &file_string).unwrap();
   }
   pub fn read_gamedata (&self) -> GameData {
-    let file_string = fs::read_to_string("worlds/gamedata.yaml").unwrap();
+    let file_string = fs::read_to_string(format!("worlds/{}.yaml", self.world_name)).unwrap();
     fs::create_dir("worlds").unwrap_or(());
     let result: GameData = serde_yaml::from_str(&file_string).unwrap();
     println!("{:?}", result);
