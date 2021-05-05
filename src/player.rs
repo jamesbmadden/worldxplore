@@ -25,7 +25,7 @@ pub struct Player {
   pub seed: u32
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct GameData {
   pub x: f32,
   pub y: f32,
@@ -202,7 +202,9 @@ impl Player {
   }
   pub fn read_gamedata (&self) -> GameData {
     let file_string = fs::read_to_string("gamedata.yaml").unwrap();
-    serde_yaml::from_str(&file_string).unwrap()
+    let result: GameData = serde_yaml::from_str(&file_string).unwrap();
+    println!("{:?}", result);
+    result
   }
 
 }
