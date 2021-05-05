@@ -21,8 +21,8 @@ const CAM_WIDTH: i32 = 33;
 const CAM_HEIGHT: i32 = 25;
 
 fn main() {
-  #[cfg(feature = "web-sys")]
-  onsole_error_panic_hook::set_once();
+  #[cfg(target_arch = "wasm32")]
+  console_error_panic_hook::set_once();
   // create input manager
   let mut input = WinitInputHelper::new();
   // generate the world
@@ -32,18 +32,18 @@ fn main() {
   let event_loop = EventLoop::new();
   let window = WindowBuilder::new().with_title("WorldXPlore Alpha").build(&event_loop).unwrap();
   // create a canvas if we're running in web
-  #[cfg(feature = "web-sys")]
+  #[cfg(target_arch = "wasm32")]
   {
     use winit::platform::web::WindowExtWebSys;
 
-    let canvas = window.canvas();
-
-    let window = web_sys::window().unwrap();
-    let document = window.document().unwrap();
-    let body = document.body().unwrap();
-
-    body.append_child(&canvas)
-      .expect("Append canvas to HTML body");
+    web_sys::window()
+      .and_then(|win| win.document())
+      .and_then(|doc| doc.body())
+      .and_then(|body| {
+        body.append_child(&web_sys::Element::from(window.canvas()))
+          .ok()
+      })
+      .expect("couldn't append canvas to document body");
   }
   // create player state
   let mut player = player::Player::new(CAM_WIDTH, CAM_HEIGHT, seed);
