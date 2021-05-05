@@ -26,7 +26,7 @@ async fn run() {
   let mut input = WinitInputHelper::new();
   // generate the world
   let seed = rand::random::<u32>();
-  let world = worldgen::elevation_to_tiles(worldgen::generate_perlin(WIDTH, HEIGHT, seed));
+  let mut world = worldgen::elevation_to_tiles(worldgen::generate_perlin(WIDTH, HEIGHT, seed));
   // create a window
   let event_loop = EventLoop::new();
   let window = WindowBuilder::new().with_title("WorldXPlore Alpha").build(&event_loop).unwrap();
@@ -47,7 +47,7 @@ async fn run() {
   // create player state
   let mut player = player::Player::new(CAM_WIDTH, CAM_HEIGHT, seed);
   // create renderer
-  let mut renderer = render::Render::new(&window, &world, &mut player, CAM_WIDTH, CAM_HEIGHT).await;
+  let mut renderer = render::Render::new(&window, &mut world, &mut player, CAM_WIDTH, CAM_HEIGHT).await;
 
   // run event loop
   event_loop.run(move | event, _, control_flow | {
@@ -87,7 +87,7 @@ async fn run() {
       // adjust mouse position to the same coordinate system as WGPU
       let relative_mouse_pos: [f32; 2] = [(mouse_x / window.inner_size().width as f32 - 0.5) * 2., (1. - mouse_y / window.inner_size().height as f32 - 0.5) * 2. ]; 
 
-      renderer.update(&world, &mut player, relative_mouse_pos, input.mouse_pressed(0), control_flow);
+      renderer.update(&mut world, &mut player, relative_mouse_pos, input.mouse_pressed(0), control_flow);
       renderer.render();
 
     }

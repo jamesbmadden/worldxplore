@@ -6,6 +6,7 @@ use serde::{Serialize, Deserialize};
 use crate::tiles;
 use crate::render; // for the tileset size constants
 use crate::ui;
+use crate::worldgen;
 
 use std::f32::consts::PI;
 
@@ -50,7 +51,7 @@ impl Player {
   }
 
   // if keys are pressed, update x and y values
-  pub fn update (&mut self, world: &Vec<Vec<tiles::TileProperties>>, cam_width: i32, cam_height: i32) {
+  pub fn update (&mut self, world: &mut Vec<Vec<tiles::TileProperties>>, cam_width: i32, cam_height: i32) {
 
     self.width = cam_width;
     self.height = cam_height;
@@ -139,7 +140,7 @@ impl Player {
     self.keys_down.remove(&key);
   }
 
-  pub fn gen_ui_vertices (&mut self, mouse_pos: [f32; 2], mouse_down: bool, control_flow: &mut winit::event_loop::ControlFlow) -> (Vec<render::Vertex>, Vec<u16>) {
+  pub fn gen_ui_vertices (&mut self, mouse_pos: [f32; 2], mouse_down: bool, control_flow: &mut winit::event_loop::ControlFlow, mut world: &mut Vec<Vec<tiles::TileProperties>>) -> (Vec<render::Vertex>, Vec<u16>) {
 
     let mut vertices: Vec<render::Vertex> = Vec::new();
     let mut indices: Vec<u16> = Vec::new();
@@ -182,7 +183,7 @@ impl Player {
           ui::Label { pos: [0., 0.5], text: String::from("Paused"), size_x: tile_width, size_y: tile_height }.gen_vertices(),
           ui::Button { pos: [0., 0.], label: String::from("Resume"), click: || { self.paused = false; } }.gen_vertices(&mouse_pos, mouse_down),
           ui::Button { pos: [0., -0.2], label: String::from("Save Game"), click: || { self.write_out_gamedata(); } }.gen_vertices(&mouse_pos, mouse_down),
-          ui::Button { pos: [0., -0.4], label: String::from("Load Game"), click: || { self.read_gamedata(); } }.gen_vertices(&mouse_pos, mouse_down),
+          ui::Button { pos: [0., -0.4], label: String::from("Load Game"), click: || { self.load_gamedata( self.read_gamedata()); self.paused = false; } }.gen_vertices(&mouse_pos, mouse_down),
           ui::Button { pos: [0., -0.6], label: String::from("Quit"), click: || { *control_flow = winit::event_loop::ControlFlow::Exit; } }.gen_vertices(&mouse_pos, mouse_down)
         ]
       }.gen_vertices();
@@ -209,6 +210,14 @@ impl Player {
     let result: GameData = serde_yaml::from_str(&file_string).unwrap();
     println!("{:?}", result);
     result
+  }
+  pub fn load_gamedata (&mut self, gamedata: GameData) -> Vec<Vec<tiles::TileProperties>> {
+    self.x = gamedata.x;
+    self.y = gamedata.y;
+    self.max_health = gamedata.max_health;
+    self.health = gamedata.health;
+    self.uniforms.time = gamedata.time;
+    worldgen::elevation_to_tiles(worldgen::generate_perlin(1000, 1000, gamedata.seed))
   }
 
 }
