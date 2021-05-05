@@ -2209,6 +2209,7 @@ dependencies = [
  "rand 0.8.3",
  "serde",
  "serde_yaml",
+ "wasm-bindgen-futures",
  "wgpu",
  "winit",
  "winit_input_helper",

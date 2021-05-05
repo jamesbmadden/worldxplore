@@ -10,7 +10,6 @@ use winit::{
   window::WindowBuilder,
 };
 use winit_input_helper::WinitInputHelper;
-use futures::executor::block_on;
 
 // Dimensions of the world
 const WIDTH: i32 = 1000;
@@ -20,7 +19,7 @@ const HEIGHT: i32 = 1000;
 const CAM_WIDTH: i32 = 33;
 const CAM_HEIGHT: i32 = 25;
 
-fn main() {
+async fn run() {
   #[cfg(target_arch = "wasm32")]
   console_error_panic_hook::set_once();
   // create input manager
@@ -48,7 +47,7 @@ fn main() {
   // create player state
   let mut player = player::Player::new(CAM_WIDTH, CAM_HEIGHT, seed);
   // create renderer
-  let mut renderer = block_on(render::Render::new(&window, &world, &mut player, CAM_WIDTH, CAM_HEIGHT));
+  let mut renderer = render::Render::new(&window, &world, &mut player, CAM_WIDTH, CAM_HEIGHT).await;
 
   // run event loop
   event_loop.run(move | event, _, control_flow | {
@@ -81,4 +80,11 @@ fn main() {
 
     }
   });
+}
+
+fn main() {
+  #[cfg(not(target_arch = "wasm32"))]
+  futures::executor::block_on(run());
+  #[cfg(target_arch = "wasm32")]
+  wasm_bindgen_futures::spawn_local(run());
 }
