@@ -191,11 +191,11 @@ impl Player {
 
       let mut pause_ui_vertices: Vec<render::Vertex> = Vec::new();
 
-      match self.pause_type {
+      pause_ui_vertices = match self.pause_type {
         PauseType::Pause => {
 
           // The pause title
-           pause_ui_vertices = ui::Group {
+          ui::Group {
             children: vec![
               ui::Label { pos: [0., 0.5], text: String::from("Paused"), size_x: tile_width, size_y: tile_height }.gen_vertices(),
               ui::Button { pos: [0., 0.], label: String::from("Resume"), click: || { self.paused = false; } }.gen_vertices(&mouse_pos, mouse_down),
@@ -203,13 +203,20 @@ impl Player {
               ui::Button { pos: [0., -0.4], label: String::from("Load Game"), click: || { self.load_gamedata( self.read_gamedata()); self.paused = false; } }.gen_vertices(&mouse_pos, mouse_down),
               ui::Button { pos: [0., -0.6], label: String::from("Quit"), click: || { *control_flow = winit::event_loop::ControlFlow::Exit; } }.gen_vertices(&mouse_pos, mouse_down)
             ]
-          }.gen_vertices();
+          }.gen_vertices()
           
         },
+        PauseType::Inventory => {
+          ui::Group {
+            children: vec![
+              ui::Label { pos: [0., 0.75], text: String::from("Inventory"), size_x: tile_width, size_y: tile_height }.gen_vertices(),
+            ]
+          }.gen_vertices()
+        },
         _ => {
-          pause_ui_vertices = ui::Label { pos: [0., 0.], text: String::from("Error"), size_x: tile_width, size_y: tile_height }.gen_vertices()
+          ui::Label { pos: [0., 0.], text: String::from("Error"), size_x: tile_width, size_y: tile_height }.gen_vertices()
         }
-      }
+      };
 
       let index_start: u16 = vertices.len().try_into().unwrap();
       let pause_label_length: u16 = pause_ui_vertices.len().try_into().unwrap();
