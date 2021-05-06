@@ -67,6 +67,10 @@ async fn run() {
     if input.update(&event) {
 
       if input.key_released(winit::event::VirtualKeyCode::Escape) {
+        player.pause_type = player::PauseType::Pause;
+        player.paused = !player.paused;
+      } else if input.key_released(winit::event::VirtualKeyCode::E) {
+        player.pause_type = player::PauseType::Inventory;
         player.paused = !player.paused;
       }
       if input.quit() {

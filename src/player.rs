@@ -23,6 +23,7 @@ pub struct Player {
   pub health: f32,
   pub max_health: f32,
   pub paused: bool,
+  pub pause_type: PauseType,
   pub seed: u32,
   pub world_name: String
 }
@@ -37,6 +38,14 @@ pub struct GameData {
   pub time: f32
 }
 
+/**
+ * The various ways the game can be paused.
+ */
+pub enum PauseType {
+  Pause,
+  Inventory
+}
+
 impl Player {
 
   pub fn new (width: i32, height: i32, seed: u32) -> Self {
@@ -48,6 +57,7 @@ impl Player {
       is_swimming: false,
       health: 6., max_health: 6.,
       paused: false,
+      pause_type: PauseType::Pause,
       world_name: String::from("New Game")
     }
   }
@@ -179,20 +189,32 @@ impl Player {
       let len = vertices.len();
       indices.append(&mut vec![ (len - 4).try_into().unwrap(), (len - 3).try_into().unwrap(), (len - 2).try_into().unwrap(), (len - 4).try_into().unwrap(), (len - 2).try_into().unwrap(), (len - 1).try_into().unwrap() ]);
 
-      // The pause title
-      let mut pause_label_vertices = ui::Group {
-        children: vec![
-          ui::Label { pos: [0., 0.5], text: String::from("Paused"), size_x: tile_width, size_y: tile_height }.gen_vertices(),
-          ui::Button { pos: [0., 0.], label: String::from("Resume"), click: || { self.paused = false; } }.gen_vertices(&mouse_pos, mouse_down),
-          ui::Button { pos: [0., -0.2], label: String::from("Save Game"), click: || { self.write_out_gamedata(); } }.gen_vertices(&mouse_pos, mouse_down),
-          ui::Button { pos: [0., -0.4], label: String::from("Load Game"), click: || { self.load_gamedata( self.read_gamedata()); self.paused = false; } }.gen_vertices(&mouse_pos, mouse_down),
-          ui::Button { pos: [0., -0.6], label: String::from("Quit"), click: || { *control_flow = winit::event_loop::ControlFlow::Exit; } }.gen_vertices(&mouse_pos, mouse_down)
-        ]
-      }.gen_vertices();
+      let mut pause_ui_vertices: Vec<render::Vertex> = Vec::new();
+
+      match self.pause_type {
+        PauseType::Pause => {
+
+          // The pause title
+           pause_ui_vertices = ui::Group {
+            children: vec![
+              ui::Label { pos: [0., 0.5], text: String::from("Paused"), size_x: tile_width, size_y: tile_height }.gen_vertices(),
+              ui::Button { pos: [0., 0.], label: String::from("Resume"), click: || { self.paused = false; } }.gen_vertices(&mouse_pos, mouse_down),
+              ui::Button { pos: [0., -0.2], label: String::from("Save Game"), click: || { self.write_out_gamedata(); } }.gen_vertices(&mouse_pos, mouse_down),
+              ui::Button { pos: [0., -0.4], label: String::from("Load Game"), click: || { self.load_gamedata( self.read_gamedata()); self.paused = false; } }.gen_vertices(&mouse_pos, mouse_down),
+              ui::Button { pos: [0., -0.6], label: String::from("Quit"), click: || { *control_flow = winit::event_loop::ControlFlow::Exit; } }.gen_vertices(&mouse_pos, mouse_down)
+            ]
+          }.gen_vertices();
+          
+        },
+        _ => {
+          pause_ui_vertices = ui::Label { pos: [0., 0.], text: String::from("Error"), size_x: tile_width, size_y: tile_height }.gen_vertices()
+        }
+      }
+
       let index_start: u16 = vertices.len().try_into().unwrap();
-      let pause_label_length: u16 = pause_label_vertices.len().try_into().unwrap();
+      let pause_label_length: u16 = pause_ui_vertices.len().try_into().unwrap();
       let index_end: u16 = index_start + pause_label_length;
-      vertices.append(&mut pause_label_vertices);
+      vertices.append(&mut pause_ui_vertices);
 
       for n in index_start..index_end {
         indices.push(n);
