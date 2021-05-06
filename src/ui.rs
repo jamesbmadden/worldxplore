@@ -196,7 +196,7 @@ pub struct Inventory<'a> {
 
 impl Inventory<'_> {
 
-  pub fn gen_vertices (&self) -> Vec<render::Vertex> {
+  pub fn gen_vertices (&self, mouse_pos: &[f32; 2]) -> Vec<render::Vertex> {
     let mut vectors: Vec<render::Vertex> = Vec::new();
     let items_per_row: usize = 8;
     // start position
@@ -224,6 +224,11 @@ impl Inventory<'_> {
       vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.), start_y - (row as f32 * TILE_HEIGHT * 2. ) ], tex_coords: [TILE_WIDTH * item.ts_coord_x as f32, TILE_HEIGHT * (item.ts_coord_y as f32 + 1.)], animation_frames: 1. }); // top left
       vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.) + TILE_WIDTH, start_y - (row as f32 * TILE_HEIGHT * 2. ) + TILE_HEIGHT ], tex_coords: [TILE_WIDTH * (item.ts_coord_x as f32 + 1.), TILE_HEIGHT * (item.ts_coord_y as f32)], animation_frames: 1. }); // bottom right
       vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.) + TILE_WIDTH, start_y - (row as f32 * TILE_HEIGHT * 2. ) ], tex_coords: [TILE_WIDTH * (item.ts_coord_x as f32 + 1.), TILE_HEIGHT * (item.ts_coord_y as f32 + 1.)], animation_frames: 1. }); // top right
+
+      // check if label should be shown (on mouse hover)
+      //if (mouse_pos[0] >= start_x + (column as f32 * TILE_WIDTH * 2.)) && (start_x + (column as f32 * TILE_WIDTH * 2.) + TILE_WIDTH >= mouse_pos[0]) && (mouse_pos[1] <= start_y - (row as f32 * TILE_HEIGHT * 2. )) && (start_y - (row as f32 * TILE_HEIGHT * 2. ) + TILE_HEIGHT <= mouse_pos[1]) {
+        vectors.append(&mut Label { text: String::from(item.name), size_x: self.size_x / 6., size_y: self.size_y / 6., pos: [start_x + (column as f32 * TILE_WIDTH * 2.) + TILE_WIDTH * 0.5, start_y - (row as f32 * TILE_HEIGHT * 2. ) - TILE_HEIGHT * 0.5 ]}.gen_vertices());
+      //}
     }
 
     vectors.iter().cloned().collect()
