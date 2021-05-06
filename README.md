@@ -7,7 +7,7 @@ Randomly generated 2D world, built with [Rust](https://www.rust-lang.org) and [W
 
 WorldXPlore is a 🛠 work in progress 🛠 game about exploring a randomly generated world, gathering resources, and surviving.
 
-WASD controls can be used to move the character around the world. Interacting with tiles is not yet implemented.
+WASD controls can be used to move the character around the world. Inventory can be accessed with E, and the game can be paused with ESC, where you can access world saving/loading, and quitting. Interacting with tiles is not yet implemented.
 
 ## Supported Platforms
 | Platform | Status |
