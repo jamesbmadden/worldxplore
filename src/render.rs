@@ -57,7 +57,7 @@ impl Render {
   /** 
   * Create an instance of renderer
   */
-  pub async fn new (window: &winit::window::Window, world: &mut Vec<Vec<tiles::TileProperties>>, play: &mut player::Player,  cam_width: i32, cam_height: i32) -> Self {
+  pub async fn new (window: &winit::window::Window, world: &mut Vec<Vec<tiles::TileProperties>>, play: &mut player::Player<'_>,  cam_width: i32, cam_height: i32) -> Self {
 
     let size = window.inner_size();
     // wgpu stuff

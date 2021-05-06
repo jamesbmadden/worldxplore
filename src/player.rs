@@ -10,7 +10,7 @@ use crate::worldgen;
 
 use std::f32::consts::PI;
 
-pub struct Player {
+pub struct Player<'a> {
   pub keys_down: HashSet<winit::event::VirtualKeyCode>,
   pub width: i32,
   pub height: i32,
@@ -25,7 +25,8 @@ pub struct Player {
   pub paused: bool,
   pub pause_type: PauseType,
   pub seed: u32,
-  pub world_name: String
+  pub world_name: String,
+  pub inventory: Vec<tiles::ItemProperties<'a>>
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -46,7 +47,7 @@ pub enum PauseType {
   Inventory
 }
 
-impl Player {
+impl Player<'_> {
 
   pub fn new (width: i32, height: i32, seed: u32) -> Self {
     Player {
@@ -58,7 +59,8 @@ impl Player {
       health: 6., max_health: 6.,
       paused: false,
       pause_type: PauseType::Pause,
-      world_name: String::from("New Game")
+      world_name: String::from("New Game"),
+      inventory: vec![tiles::STICK, tiles::STICK, tiles::STICK, tiles::STICK, tiles::STICK, tiles::STICK, tiles::STICK, tiles::STICK, tiles::STICK, tiles::STICK, tiles::STICK, tiles::STICK, tiles::STICK]
     }
   }
 
@@ -210,6 +212,7 @@ impl Player {
           ui::Group {
             children: vec![
               ui::Label { pos: [0., 0.75], text: String::from("Inventory"), size_x: tile_width, size_y: tile_height }.gen_vertices(),
+              ui::Inventory { pos: [0., 0.5], size_x: tile_width, size_y: tile_height, inventory: &self.inventory }.gen_vertices()
             ]
           }.gen_vertices()
         },

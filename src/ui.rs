@@ -1,4 +1,5 @@
 use crate::render;
+use crate::tiles;
 
 use std::convert::TryInto;
 
@@ -182,6 +183,50 @@ impl Label {
 
     vertices.iter().cloned().collect()
 
+  }
+
+}
+
+pub struct Inventory<'a> {
+  pub pos: [f32; 2],
+  pub size_x: f32,
+  pub size_y: f32,
+  pub inventory: &'a Vec<tiles::ItemProperties<'a>>
+}
+
+impl Inventory<'_> {
+
+  pub fn gen_vertices (&self) -> Vec<render::Vertex> {
+    let mut vectors: Vec<render::Vertex> = Vec::new();
+    let items_per_row: usize = 8;
+    // start position
+    let start_x: f32 = 0.8 / (items_per_row as f32 * 2.) - 0.5;
+    let start_y: f32 = self.pos[1] as f32;
+
+    for (i, item) in self.inventory.iter().enumerate() {
+      // find the column that it is in
+      let column = i % items_per_row;
+      let row = i / items_per_row;
+      // make the background
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.), start_y - (row as f32 * TILE_HEIGHT * 2. ) ], tex_coords: [TILE_WIDTH * 5., TILE_HEIGHT * 4.], animation_frames: 1. }); // top left
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.), start_y - (row as f32 * TILE_HEIGHT * 2. ) + TILE_HEIGHT ], tex_coords: [TILE_WIDTH * 5., TILE_HEIGHT * 5.], animation_frames: 1. }); // bottom left
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.) + TILE_WIDTH, start_y - (row as f32 * TILE_HEIGHT * 2. ) + TILE_HEIGHT ], tex_coords: [TILE_WIDTH * 6., TILE_HEIGHT * 5.], animation_frames: 1. }); // bottom right
+      // second tri
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.), start_y - (row as f32 * TILE_HEIGHT * 2. ) ], tex_coords: [TILE_WIDTH * 5., TILE_HEIGHT * 4.], animation_frames: 1. }); // top left
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.) + TILE_WIDTH, start_y - (row as f32 * TILE_HEIGHT * 2. ) + TILE_HEIGHT ], tex_coords: [TILE_WIDTH * 6., TILE_HEIGHT * 5.], animation_frames: 1. }); // bottom right
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.) + TILE_WIDTH, start_y - (row as f32 * TILE_HEIGHT * 2. ) ], tex_coords: [TILE_WIDTH * 5., TILE_HEIGHT * 5.], animation_frames: 1. }); // top right
+
+      // make the icon
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.), start_y - (row as f32 * TILE_HEIGHT * 2. ) ], tex_coords: [TILE_WIDTH * item.ts_coord_x as f32, TILE_HEIGHT * (item.ts_coord_y as f32 + 1.)], animation_frames: 1. }); // top left
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.), start_y - (row as f32 * TILE_HEIGHT * 2. ) + TILE_HEIGHT ], tex_coords: [TILE_WIDTH * item.ts_coord_x as f32, TILE_HEIGHT * (item.ts_coord_y as f32)], animation_frames: 1. }); // bottom left
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.) + TILE_WIDTH, start_y - (row as f32 * TILE_HEIGHT * 2. ) + TILE_HEIGHT ], tex_coords: [TILE_WIDTH * (item.ts_coord_x as f32 + 1.), TILE_HEIGHT * (item.ts_coord_y as f32)], animation_frames: 1. }); // bottom right
+      // second tri
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.), start_y - (row as f32 * TILE_HEIGHT * 2. ) ], tex_coords: [TILE_WIDTH * item.ts_coord_x as f32, TILE_HEIGHT * (item.ts_coord_y as f32 + 1.)], animation_frames: 1. }); // top left
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.) + TILE_WIDTH, start_y - (row as f32 * TILE_HEIGHT * 2. ) + TILE_HEIGHT ], tex_coords: [TILE_WIDTH * (item.ts_coord_x as f32 + 1.), TILE_HEIGHT * (item.ts_coord_y as f32)], animation_frames: 1. }); // bottom right
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.) + TILE_WIDTH, start_y - (row as f32 * TILE_HEIGHT * 2. ) ], tex_coords: [TILE_WIDTH * (item.ts_coord_x as f32 + 1.), TILE_HEIGHT * (item.ts_coord_y as f32 + 1.)], animation_frames: 1. }); // top right
+    }
+
+    vectors.iter().cloned().collect()
   }
 
 }
