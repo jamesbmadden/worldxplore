@@ -200,7 +200,7 @@ impl Inventory<'_> {
     let mut vectors: Vec<render::Vertex> = Vec::new();
     let items_per_row: usize = 8;
     // start position
-    let start_x: f32 = 0.8 / (items_per_row as f32 * 2.) - 0.5;
+    let start_x: f32 = 0.8 / (items_per_row as f32 * 3.) - 0.75;
     let start_y: f32 = self.pos[1] as f32;
 
     for (i, item) in self.inventory.iter().enumerate() {
@@ -208,26 +208,26 @@ impl Inventory<'_> {
       let column = i % items_per_row;
       let row = i / items_per_row;
       // make the background
-      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.), start_y - (row as f32 * TILE_HEIGHT * 2. ) ], tex_coords: [TILE_WIDTH * 5., TILE_HEIGHT * 4.], animation_frames: 1. }); // top left
-      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.), start_y - (row as f32 * TILE_HEIGHT * 2. ) + TILE_HEIGHT ], tex_coords: [TILE_WIDTH * 5., TILE_HEIGHT * 5.], animation_frames: 1. }); // bottom left
-      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.) + TILE_WIDTH, start_y - (row as f32 * TILE_HEIGHT * 2. ) + TILE_HEIGHT ], tex_coords: [TILE_WIDTH * 6., TILE_HEIGHT * 5.], animation_frames: 1. }); // bottom right
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 3.), start_y - (row as f32 * TILE_HEIGHT * 3. ) ], tex_coords: [TILE_WIDTH * 5., TILE_HEIGHT * 4.], animation_frames: 1. }); // top left
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 3.), start_y - (row as f32 * TILE_HEIGHT * 3. ) + TILE_HEIGHT * 1.5 ], tex_coords: [TILE_WIDTH * 5., TILE_HEIGHT * 5.], animation_frames: 1. }); // bottom left
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 3.) + TILE_WIDTH * 1.5, start_y - (row as f32 * TILE_HEIGHT * 3. ) + TILE_HEIGHT * 1.5 ], tex_coords: [TILE_WIDTH * 6., TILE_HEIGHT * 5.], animation_frames: 1. }); // bottom right
       // second tri
-      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.), start_y - (row as f32 * TILE_HEIGHT * 2. ) ], tex_coords: [TILE_WIDTH * 5., TILE_HEIGHT * 4.], animation_frames: 1. }); // top left
-      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.) + TILE_WIDTH, start_y - (row as f32 * TILE_HEIGHT * 2. ) + TILE_HEIGHT ], tex_coords: [TILE_WIDTH * 6., TILE_HEIGHT * 5.], animation_frames: 1. }); // bottom right
-      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.) + TILE_WIDTH, start_y - (row as f32 * TILE_HEIGHT * 2. ) ], tex_coords: [TILE_WIDTH * 5., TILE_HEIGHT * 5.], animation_frames: 1. }); // top right
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 3.), start_y - (row as f32 * TILE_HEIGHT * 3. ) ], tex_coords: [TILE_WIDTH * 5., TILE_HEIGHT * 4.], animation_frames: 1. }); // top left
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 3.) + TILE_WIDTH * 1.5, start_y - (row as f32 * TILE_HEIGHT * 3. ) + TILE_HEIGHT * 1.5 ], tex_coords: [TILE_WIDTH * 6., TILE_HEIGHT * 5.], animation_frames: 1. }); // bottom right
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 3.) + TILE_WIDTH * 1.5, start_y - (row as f32 * TILE_HEIGHT * 3. ) ], tex_coords: [TILE_WIDTH * 5., TILE_HEIGHT * 5.], animation_frames: 1. }); // top right
 
       // make the icon
-      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.), start_y - (row as f32 * TILE_HEIGHT * 2. ) ], tex_coords: [TILE_WIDTH * item.ts_coord_x as f32, TILE_HEIGHT * (item.ts_coord_y as f32 + 1.)], animation_frames: 1. }); // top left
-      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.), start_y - (row as f32 * TILE_HEIGHT * 2. ) + TILE_HEIGHT ], tex_coords: [TILE_WIDTH * item.ts_coord_x as f32, TILE_HEIGHT * (item.ts_coord_y as f32)], animation_frames: 1. }); // bottom left
-      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.) + TILE_WIDTH, start_y - (row as f32 * TILE_HEIGHT * 2. ) + TILE_HEIGHT ], tex_coords: [TILE_WIDTH * (item.ts_coord_x as f32 + 1.), TILE_HEIGHT * (item.ts_coord_y as f32)], animation_frames: 1. }); // bottom right
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 3.), start_y - (row as f32 * TILE_HEIGHT * 3. ) ], tex_coords: [TILE_WIDTH * item.ts_coord_x as f32, TILE_HEIGHT * (item.ts_coord_y as f32 + 1.)], animation_frames: 1. }); // top left
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 3.), start_y - (row as f32 * TILE_HEIGHT * 3. ) + TILE_HEIGHT * 1.5 ], tex_coords: [TILE_WIDTH * item.ts_coord_x as f32, TILE_HEIGHT * (item.ts_coord_y as f32)], animation_frames: 1. }); // bottom left
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 3.) + TILE_WIDTH * 1.5, start_y - (row as f32 * TILE_HEIGHT * 3. ) + TILE_HEIGHT * 1.5 ], tex_coords: [TILE_WIDTH * (item.ts_coord_x as f32 + 1.), TILE_HEIGHT * (item.ts_coord_y as f32)], animation_frames: 1. }); // bottom right
       // second tri
-      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.), start_y - (row as f32 * TILE_HEIGHT * 2. ) ], tex_coords: [TILE_WIDTH * item.ts_coord_x as f32, TILE_HEIGHT * (item.ts_coord_y as f32 + 1.)], animation_frames: 1. }); // top left
-      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.) + TILE_WIDTH, start_y - (row as f32 * TILE_HEIGHT * 2. ) + TILE_HEIGHT ], tex_coords: [TILE_WIDTH * (item.ts_coord_x as f32 + 1.), TILE_HEIGHT * (item.ts_coord_y as f32)], animation_frames: 1. }); // bottom right
-      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 2.) + TILE_WIDTH, start_y - (row as f32 * TILE_HEIGHT * 2. ) ], tex_coords: [TILE_WIDTH * (item.ts_coord_x as f32 + 1.), TILE_HEIGHT * (item.ts_coord_y as f32 + 1.)], animation_frames: 1. }); // top right
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 3.), start_y - (row as f32 * TILE_HEIGHT * 3. ) ], tex_coords: [TILE_WIDTH * item.ts_coord_x as f32, TILE_HEIGHT * (item.ts_coord_y as f32 + 1.)], animation_frames: 1. }); // top left
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 3.) + TILE_WIDTH * 1.5, start_y - (row as f32 * TILE_HEIGHT * 3. ) + TILE_HEIGHT * 1.5 ], tex_coords: [TILE_WIDTH * (item.ts_coord_x as f32 + 1.), TILE_HEIGHT * (item.ts_coord_y as f32)], animation_frames: 1. }); // bottom right
+      vectors.push(render::Vertex { pos: [ start_x + (column as f32 * TILE_WIDTH * 3.) + TILE_WIDTH * 1.5, start_y - (row as f32 * TILE_HEIGHT * 3. ) ], tex_coords: [TILE_WIDTH * (item.ts_coord_x as f32 + 1.), TILE_HEIGHT * (item.ts_coord_y as f32 + 1.)], animation_frames: 1. }); // top right
 
       // check if label should be shown (on mouse hover)
-      //if (mouse_pos[0] >= start_x + (column as f32 * TILE_WIDTH * 2.)) && (start_x + (column as f32 * TILE_WIDTH * 2.) + TILE_WIDTH >= mouse_pos[0]) && (mouse_pos[1] <= start_y - (row as f32 * TILE_HEIGHT * 2. )) && (start_y - (row as f32 * TILE_HEIGHT * 2. ) + TILE_HEIGHT <= mouse_pos[1]) {
-        vectors.append(&mut Label { text: String::from(item.name), size_x: self.size_x / 6., size_y: self.size_y / 6., pos: [start_x + (column as f32 * TILE_WIDTH * 2.) + TILE_WIDTH * 0.5, start_y - (row as f32 * TILE_HEIGHT * 2. ) - TILE_HEIGHT * 0.5 ]}.gen_vertices());
+      //if (mouse_pos[0] >= start_x + (column as f32 * TILE_WIDTH * 3.)) && (start_x + (column as f32 * TILE_WIDTH * 3.) + TILE_WIDTH >= mouse_pos[0]) && (mouse_pos[1] <= start_y - (row as f32 * TILE_HEIGHT * 3. )) && (start_y - (row as f32 * TILE_HEIGHT * 3. ) + TILE_HEIGHT <= mouse_pos[1]) {
+        vectors.append(&mut Label { text: String::from(item.name), size_x: self.size_x / 6., size_y: self.size_y / 6., pos: [start_x + (column as f32 * TILE_WIDTH * 3.) + TILE_WIDTH * 0.5, start_y - (row as f32 * TILE_HEIGHT * 3. ) - TILE_HEIGHT * 0.5 ]}.gen_vertices());
       //}
     }
 
