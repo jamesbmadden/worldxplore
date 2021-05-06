@@ -212,7 +212,7 @@ impl Player<'_> {
           ui::Group {
             children: vec![
               ui::Label { pos: [0., 0.75], text: String::from("Inventory"), size_x: tile_width, size_y: tile_height }.gen_vertices(),
-              ui::Inventory { pos: [0., 0.5], size_x: tile_width, size_y: tile_height, inventory: &self.inventory }.gen_vertices(&mouse_pos)
+              ui::Inventory { pos: [0., 0.25], size_x: tile_width, size_y: tile_height, inventory: &self.inventory }.gen_vertices(&mouse_pos)
             ]
           }.gen_vertices()
         },
