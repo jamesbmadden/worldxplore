@@ -9,6 +9,15 @@ pub struct TileProperties {
   pub slowing: bool, // currently unused
   pub damaging: bool // currently unused
 }
+
+#[repr(C)]
+#[derive(Clone, Copy, Debug)]
+pub enum ItemTypes {
+  Weapon,
+  Tool,
+  Resource
+}
+
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
 pub struct ItemProperties<'a> {
@@ -16,7 +25,8 @@ pub struct ItemProperties<'a> {
   pub ts_coord_y: u32,
   pub animation_frames: u32,
   pub name: &'a str,
-  pub stackable: bool
+  pub stackable: bool,
+  pub item_type: ItemTypes
 }
 
 /**
@@ -104,5 +114,15 @@ pub const STICK: ItemProperties = ItemProperties {
   ts_coord_y: 1,
   animation_frames: 1,
   name: "Stick",
-  stackable: false
+  stackable: false,
+  item_type: ItemTypes::Resource
+};
+
+pub const SWORD: ItemProperties = ItemProperties {
+  ts_coord_x: 4,
+  ts_coord_y: 2,
+  animation_frames: 1,
+  name: "Sword",
+  stackable: false,
+  item_type: ItemTypes::Weapon
 };

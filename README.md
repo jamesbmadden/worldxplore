@@ -1,4 +1,4 @@
-# WorldXPlore Alpha
+# 👾  WorldXPlore Alpha  🗺
 Randomly generated 2D world, built with [Rust](https://www.rust-lang.org) and [WGPU](https://github.com/gfx-rs/wgpu-rs).
 ![Screenshot of WorldXPlore Alpha](./.github/readme_img.png)
 
@@ -9,7 +9,7 @@ WorldXPlore is a 🛠 work in progress 🛠 game about exploring a randomly gene
 
 WASD controls can be used to move the character around the world. Inventory can be accessed with E, and the game can be paused with ESC, where you can access world saving/loading, and quitting. Interacting with tiles is not yet implemented.
 
-## Supported Platforms
+## 🖥  Supported Platforms
 | Platform | Status |
 |----------|--------|
 | Mac OS   | ✅ Tested |

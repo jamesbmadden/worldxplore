@@ -60,7 +60,7 @@ impl Player<'_> {
       paused: false,
       pause_type: PauseType::Pause,
       world_name: String::from("New Game"),
-      inventory: vec![tiles::STICK, tiles::STICK, tiles::STICK, tiles::STICK, tiles::STICK, tiles::STICK, tiles::STICK, tiles::STICK, tiles::STICK, tiles::STICK, tiles::STICK, tiles::STICK, tiles::STICK]
+      inventory: vec![tiles::SWORD, tiles::STICK]
     }
   }
 
