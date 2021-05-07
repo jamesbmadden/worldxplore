@@ -1,6 +1,18 @@
 # 👾  WorldXPlore Alpha  🗺
 Randomly generated 2D world, built with [Rust](https://www.rust-lang.org) and [WGPU](https://github.com/gfx-rs/wgpu-rs).
-![Screenshot of WorldXPlore Alpha](./.github/readme_img.png)
+
+<style>
+  .row {
+    display: flex;
+  }
+  .row img {
+    width: 50%;
+  }
+</style>
+<div class="row">
+  <img src="./.github/readme_img.png" alt="Screenshot of WorldXPlore Alpha">
+  <img src="./.github/readme_inv.png" alt="Screenshot of WorldXPlore Alpha">
+</div>
 
 ## 🎮  Gameplay
 *As of right now, only keyboard controls are supported. Controller and touch controls may be implemented later.*
