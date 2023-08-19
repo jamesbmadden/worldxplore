@@ -14,9 +14,9 @@ WASD controls can be used to move the character around the world. Inventory can 
 ## 🖥  Supported Platforms
 | Platform | Status |
 |----------|--------|
-| Mac OS   | ✅ Tested |
-| Windows  | 🤷 Untested, Should Work |
-| Linux    | 🤷 Untested, Should Work |
+| Mac OS   | 🤷 Untested, Should Work (^0.2.0), ✅ Tested (0.1.0)|
+| Windows  | ✅ Tested|
+| Linux    | ✅ Tested (^0.2.0)|
 | Android  | ❌ Not Yet Supported |
 | iOS      | ❌ Not Yet Supported |
 
