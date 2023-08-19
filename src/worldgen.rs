@@ -48,7 +48,8 @@ pub fn elevation_to_tiles (p_map: Vec<Vec<(f64, f64)>>) -> Vec<Vec<tiles::TilePr
       else { return tiles::SAND }
     }
     else { 
-      if veg > &0.7 { return tiles::TREE }
+      if veg > &0.7 { return tiles::STUMP }
+      else if veg > &0.5 { return tiles::TREE }
       else { return tiles::GRASS }
     }
   }).collect()).collect()
