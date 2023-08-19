@@ -87,7 +87,8 @@ impl Player<'_> {
       translate_vector: [ x_offset * tile_width, y_offset * tile_height ], 
       is_swimming: self.is_swimming.into(),
       time: self.uniforms.time,
-      light_intensity: light_intensity(self.uniforms.time)
+      light_intensity: light_intensity(self.uniforms.time),
+      unused: 0.
     };
 
   }
@@ -265,7 +266,9 @@ pub struct Uniforms {
   pub translate_vector: [f32; 2],
   pub is_swimming: i32,
   pub time: f32,
-  pub light_intensity: [f32; 3]
+  pub light_intensity: [f32; 3],
+  // needed to fix an issue with the shader that I'm not sure about
+  pub unused: f32
 }
 
 impl Uniforms {
@@ -274,7 +277,8 @@ impl Uniforms {
       translate_vector: [0., 0.],
       is_swimming: 0,
       time: 0.,
-      light_intensity: light_intensity(0.)
+      light_intensity: light_intensity(0.),
+      unused: 0.
     }
   }
 }

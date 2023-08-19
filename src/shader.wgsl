@@ -1,29 +1,28 @@
 struct VertexOutput {
-    [[location(0)]] tex_coord: vec2<f32>;
-    [[location(1)]] light_intensity: vec3<f32>;
-    [[builtin(position)]] position: vec4<f32>;
+    @location(0) tex_coord: vec2<f32>,
+    @location(1) light_intensity: vec3<f32>,
+    @builtin(position) position: vec4<f32>
 };
 
-[[block]]
 struct Uniforms {
-    camera_offset: vec2<f32>;
-    is_swimming: i32;
-    time: f32;
-    light_intensity: vec3<f32>;
+    camera_offset: vec2<f32>,
+    is_swimming: i32,
+    time: f32,
+    light_intensity: vec3<f32>
 };
-[[group(1), binding(0)]]
-var uniforms: Uniforms;
+@group(1) @binding(0)
+var<uniform> uniforms: Uniforms;
 
 fn get_anim_frame_tex_coord(frame1_tex_coord: vec2<f32>, animation_frames: f32) -> vec2<f32> {
     var frame: f32 = floor(uniforms.time) % animation_frames;
     return vec2<f32>(frame1_tex_coord.x, frame1_tex_coord.y + 8. / 80. * frame);
 }
 
-[[stage(vertex)]]
+@vertex
 fn vs_main(
-    [[location(0)]] position: vec2<f32>, 
-    [[location(1)]] tex_coord: vec2<f32>,
-    [[location(2)]] animation_frames: f32,
+    @location(0) position: vec2<f32>, 
+    @location(1) tex_coord: vec2<f32>,
+    @location(2) animation_frames: f32,
 ) -> VertexOutput {
 
     var out: VertexOutput;
@@ -33,11 +32,11 @@ fn vs_main(
     return out;
 }
 
-[[stage(vertex)]]
+@vertex
 fn vs_ui(
-    [[location(0)]] position: vec2<f32>, 
-    [[location(1)]] tex_coord: vec2<f32>,
-    [[location(2)]] animation_frames: f32,
+    @location(0) position: vec2<f32>, 
+    @location(1) tex_coord: vec2<f32>,
+    @location(2) animation_frames: f32,
 ) -> VertexOutput {
 
     var out: VertexOutput;
@@ -47,11 +46,11 @@ fn vs_ui(
     return out;
 }
 
-[[stage(vertex)]]
+@vertex
 fn vs_player(
-    [[location(0)]] position: vec2<f32>, 
-    [[location(1)]] tex_coord: vec2<f32>,
-    [[location(2)]] animation_frames: f32,
+    @location(0) position: vec2<f32>, 
+    @location(1) tex_coord: vec2<f32>,
+    @location(2) animation_frames: f32,
 ) -> VertexOutput {
 
     var out: VertexOutput;
@@ -69,12 +68,12 @@ fn vs_player(
     return out;
 }
 
-[[group(0), binding(0)]]
+@group(0) @binding(0)
 var f_tex_color: texture_2d<f32>;
-[[group(0), binding(1)]]
+@group(0) @binding(1)
 var f_tex_sampler: sampler;
 
-[[stage(fragment)]]
-fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+@fragment
+fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     return textureSample(f_tex_color, f_tex_sampler, in.tex_coord) * vec4<f32>(in.light_intensity.x, in.light_intensity.y, in.light_intensity.z, 1.0);
 }
