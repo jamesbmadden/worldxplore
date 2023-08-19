@@ -73,7 +73,7 @@ async fn run() {
         player.pause_type = player::PauseType::Inventory;
         player.paused = !player.paused;
       }
-      if input.quit() {
+      if input.close_requested() {
         *control_flow = ControlFlow::Exit;
       }
 
