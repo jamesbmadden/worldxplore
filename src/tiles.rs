@@ -1,3 +1,5 @@
+use bytemuck::{Pod, Zeroable};
+
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
 pub struct TileProperties {
@@ -10,10 +12,32 @@ pub struct TileProperties {
   pub damaging: bool, // currently unused
 
   // properties for a bigger tile (like trees):
-  pub width: u32,
+  pub width: u32, // how many tiles the object should take up
   pub height: u32,
-  pub centre_x: u32,
-  pub centre_y: u32
+  pub offset_x: i32, // how much to adjust the tile from its origin for rendering
+  pub offset_y: i32
+}
+
+// for a tile to be rendered, it requires the following data:
+#[repr(C)]
+#[derive(Clone, Copy, Pod, Zeroable, Debug)]
+pub struct TileInstance {
+  // position on screen it's drawn
+  pub x: f32,
+  pub y: f32,
+  pub offset_x: i32, // how much to adjust the tile from its origin for rendering
+  pub offset_y: i32,
+  pub tile_width: f32,
+  pub tile_height: f32,
+
+  // texture information
+  pub ts_coord_x: u32,
+  pub ts_coord_y: u32,
+  pub animation_frames: u32,
+  pub width: u32, // how many tiles the object should take up
+  pub height: u32,
+  pub tx_width: f32,
+  pub tx_height: f32
 }
 
 #[repr(C)]
@@ -48,8 +72,8 @@ pub const DEEP_OCEAN: TileProperties = TileProperties {
   damaging: false,
   width: 1,
   height: 1,
-  centre_x: 0,
-  centre_y: 0
+  offset_x: 0,
+  offset_y: 0
 };
 pub const OCEAN: TileProperties = TileProperties {
   ts_coord_x: 1,
@@ -61,8 +85,8 @@ pub const OCEAN: TileProperties = TileProperties {
   damaging: false,
   width: 1,
   height: 1,
-  centre_x: 0,
-  centre_y: 0
+  offset_x: 0,
+  offset_y: 0
 };
 pub const SAND: TileProperties = TileProperties {
   ts_coord_x: 2,
@@ -74,8 +98,8 @@ pub const SAND: TileProperties = TileProperties {
   damaging: false,
   width: 1,
   height: 1,
-  centre_x: 0,
-  centre_y: 0
+  offset_x: 0,
+  offset_y: 0
 };
 pub const GRASS: TileProperties = TileProperties {
   ts_coord_x: 3,
@@ -87,8 +111,8 @@ pub const GRASS: TileProperties = TileProperties {
   damaging: false,
   width: 1,
   height: 1,
-  centre_x: 0,
-  centre_y: 0
+  offset_x: 0,
+  offset_y: 0
 };
 pub const STUMP: TileProperties = TileProperties {
   ts_coord_x: 4,
@@ -100,8 +124,8 @@ pub const STUMP: TileProperties = TileProperties {
   damaging: false,
   width: 1,
   height: 1,
-  centre_x: 0,
-  centre_y: 0
+  offset_x: 0,
+  offset_y: 0
 };
 pub const KELP: TileProperties = TileProperties {
   ts_coord_x: 5,
@@ -113,8 +137,8 @@ pub const KELP: TileProperties = TileProperties {
   damaging: false,
   width: 1,
   height: 1,
-  centre_x: 0,
-  centre_y: 0
+  offset_x: 0,
+  offset_y: 0
 };
 pub const LILYPAD: TileProperties = TileProperties {
   ts_coord_x: 6,
@@ -126,8 +150,8 @@ pub const LILYPAD: TileProperties = TileProperties {
   damaging: false,
   width: 1,
   height: 1,
-  centre_x: 0,
-  centre_y: 0
+  offset_x: 0,
+  offset_y: 0
 };
 pub const CACTUS: TileProperties = TileProperties {
   ts_coord_x: 7,
@@ -139,8 +163,8 @@ pub const CACTUS: TileProperties = TileProperties {
   damaging: true, // not yet implemented
   width: 1,
   height: 1,
-  centre_x: 0,
-  centre_y: 0
+  offset_x: 0,
+  offset_y: 0
 };
 
 /**
@@ -156,8 +180,8 @@ pub const TREE: TileProperties = TileProperties {
   damaging: false,
   width: 3, // because the tree takes up multiple tiles, it needs a width, height, and texture offset
   height: 4,
-  centre_x: 1,
-  centre_y: 3
+  offset_x: -1,
+  offset_y: -3
 };
 
 /**

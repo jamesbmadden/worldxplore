@@ -2,6 +2,7 @@ use std::{borrow::Cow, convert::TryInto, mem};
 
 use crate::player;
 use crate::tiles;
+use crate::tiles::TileInstance;
 
 use wgpu::util::DeviceExt;
 use bytemuck::{Pod, Zeroable};
@@ -35,8 +36,9 @@ pub struct Render {
   pub bind_group: wgpu::BindGroup,
   pub uniform_bind_group: wgpu::BindGroup,
 
-  pub vertices: Vec<Vertex>,
-  pub index_count: usize,
+  pub instances: Vec<tiles::TileInstance>,
+  pub instance_buf: wgpu::Buffer,
+
   pub player_vertices: Vec<Vertex>,
   pub player_index_count: usize,
   pub ui_vertices: Vec<Vertex>,
@@ -49,6 +51,18 @@ pub struct Render {
   pub prev_y: i32,
   pub force_update: bool
 }
+
+// the vertices and indices for a single tile
+const TILE_VERTICES: [Vertex; 4] = [
+  Vertex { pos: [ 0., 0.], tex_coords: [ 0., 0. ], animation_frames: 0. }, // bottom left
+  Vertex { pos: [ 0., 1.], tex_coords: [ 0., 8. / TILESET_HEIGHT as f32 ], animation_frames: 0. }, // top left
+  Vertex { pos: [ 1., 0.], tex_coords: [ 8. / TILESET_WIDTH as f32, 0. ], animation_frames: 0. }, // bottom right
+  Vertex { pos: [ 1., 1.], tex_coords: [ 8. / TILESET_WIDTH as f32, 8. / TILESET_HEIGHT as f32 ], animation_frames: 0. }, // top right
+];
+const TILE_INDICES: [u16; 6] = [
+  2, 1, 0,
+  3, 1, 2
+];
 
 impl Render {
 
@@ -99,19 +113,20 @@ impl Render {
     surface.configure(&device, &config);
 
     // make vertex data
-    let (vertices, indices) = gen_vertices(&world, 0, 0, cam_width, cam_height);
     let (player_vertices, player_indices) = player::player_vertices(cam_width, cam_height);
     // pass a control flow to be edited
     let mut control_flow = winit::event_loop::ControlFlow::Wait;
     let (ui_vertices, ui_indices) = play.gen_ui_vertices([0., 0.], false, &mut control_flow, world);
-    let index_count = indices.len();
     let player_index_count = player_indices.len();
     let ui_index_count = ui_indices.len();
+
+    // make instance data
+    let instances = gen_tile_instances(world, 0, 0, cam_width, cam_height);
 
     // buffers
     let vertex_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
       label: Some("Vertex Buffer"),
-      contents: bytemuck::cast_slice(&vertices),
+      contents: bytemuck::cast_slice(&TILE_VERTICES),
       usage: wgpu::BufferUsages::VERTEX
     });
     let player_vertex_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -127,28 +142,16 @@ impl Render {
     let vertex_buffers = [wgpu::VertexBufferLayout {
       array_stride: mem::size_of::<Vertex>() as u64,
       step_mode: wgpu::VertexStepMode::Vertex,
-      attributes: &[
-        wgpu::VertexAttribute { // 
-          format: wgpu::VertexFormat::Float32x2,
-          offset: 0,
-          shader_location: 0
-        },
-        wgpu::VertexAttribute {
-          format: wgpu::VertexFormat::Float32x2,
-          offset: mem::size_of::<[f32; 2]>() as u64,
-          shader_location: 1
-        },
-        wgpu::VertexAttribute {
-          format: wgpu::VertexFormat::Float32,
-          offset: mem::size_of::<[f32; 4]>() as u64,
-          shader_location: 2
-        }
+      attributes: &wgpu::vertex_attr_array![
+        0 => Float32x2,
+        1 => Float32x2,
+        2 => Float32
       ]
     }];
 
     let index_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
       label: Some("Index Buffer"),
-      contents: bytemuck::cast_slice(&indices),
+      contents: bytemuck::cast_slice(&TILE_INDICES),
       usage: wgpu::BufferUsages::INDEX
     });
     let player_index_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -161,6 +164,48 @@ impl Render {
       contents: bytemuck::cast_slice(&ui_indices),
       usage: wgpu::BufferUsages::INDEX
     });
+
+    // create the instance buffer
+    let instance_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+      label: Some("Instance Buffer"),
+      contents: bytemuck::cast_slice(&instances),
+      usage: wgpu::BufferUsages::VERTEX
+    });
+
+    let instanced_buffers = [
+      // vertex buffer
+      wgpu::VertexBufferLayout {
+        array_stride: mem::size_of::<Vertex>() as wgpu::BufferAddress,
+        step_mode: wgpu::VertexStepMode::Vertex,
+        attributes: &wgpu::vertex_attr_array![
+          0 => Float32x2,
+          1 => Float32x2,
+          2 => Float32
+        ]
+      },
+      // instance buffer
+      wgpu::VertexBufferLayout {
+        array_stride: std::mem::size_of::<TileInstance>() as wgpu::BufferAddress,
+        step_mode: wgpu::VertexStepMode::Instance,
+        // a tile instance has a lot of attributes, but mostly float32s
+        attributes: &wgpu::vertex_attr_array![
+          3 => Float32,
+          4 => Float32,
+          5 => Sint32,
+          6 => Sint32,
+          7 => Float32,
+          8 => Float32,
+
+          9 => Uint32,
+          10 => Uint32,
+          11 => Uint32,
+          12 => Uint32,
+          13 => Uint32,
+          14 => Float32,
+          15 => Float32
+        ],
+      }
+    ];
 
     // uniform only (as of now at least) contains the offset for movement.
     let uniform_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -306,7 +351,7 @@ impl Render {
       vertex: wgpu::VertexState {
         module: &shader,
         entry_point: "vs_main",
-        buffers: &vertex_buffers
+        buffers: &instanced_buffers
       },
       fragment: Some(wgpu::FragmentState {
         module: &shader,
@@ -370,7 +415,7 @@ impl Render {
     Render {
       surface, device, queue, render_pipeline, player_render_pipeline, ui_render_pipeline, bind_group, uniform_bind_group,
       vertex_buf, index_buf, player_vertex_buf, player_index_buf, ui_vertex_buf, ui_index_buf, uniform_buf,
-      index_count, vertices, player_index_count, player_vertices, ui_index_count, ui_vertices,
+      instances, instance_buf, player_index_count, player_vertices, ui_index_count, ui_vertices,
       cam_width, cam_height, config,
       prev_x: 0, prev_y: 0, force_update: false
     }
@@ -393,11 +438,12 @@ impl Render {
       // check if values need update
       if rounded_x != self.prev_x || rounded_y != self.prev_y || self.force_update {
         // if so, update local values
-        let (vertices, _) = gen_vertices(&world, rounded_x, rounded_y, self.cam_width, self.cam_height);
-        self.vertices = vertices;
-        self.vertex_buf = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-          label: Some("Vertex Buffer"),
-          contents: bytemuck::cast_slice(&self.vertices),
+        let instances = gen_tile_instances(&world, rounded_x, rounded_y, self.cam_width, self.cam_height);
+        self.instances = instances;
+
+        self.instance_buf = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+          label: Some("Instance Buffer"),
+          contents: bytemuck::cast_slice(&self.instances),
           usage: wgpu::BufferUsages::VERTEX
         });
       }
@@ -465,7 +511,8 @@ impl Render {
       rpass.set_bind_group(1, &self.uniform_bind_group, &[]);
       rpass.set_index_buffer(self.index_buf.slice(..), wgpu::IndexFormat::Uint16);
       rpass.set_vertex_buffer(0, self.vertex_buf.slice(..));
-      rpass.draw_indexed(0..self.index_count as u32, 0, 0..1);
+      rpass.set_vertex_buffer(1, self.instance_buf.slice(..));
+      rpass.draw_indexed(0..TILE_INDICES.len() as _, 0, 0..self.instances.len() as _);
       // render player
       rpass.set_pipeline(&self.player_render_pipeline);
       rpass.set_index_buffer(self.player_index_buf.slice(..), wgpu::IndexFormat::Uint16);
@@ -505,64 +552,43 @@ impl Render {
 }
 
 /**
-* Generate vertices and indices for world and player
-*/
-pub fn gen_vertices (world: &Vec<Vec<tiles::TileProperties>>, start_x: i32, start_y: i32, width: i32, height: i32) -> (Vec<Vertex>, Vec<u16>) {
+ * Generate instances of tiles
+ */
+pub fn gen_tile_instances (world: &Vec<Vec<tiles::TileProperties>>, start_x: i32, start_y: i32, width: i32, height: i32) -> Vec<tiles::TileInstance> {
+
   // create a vector to write to
-  let mut vertices: Vec<Vertex> = Vec::new();
-  let mut indices: Vec<u16> = Vec::new();
+  let mut instances: Vec<tiles::TileInstance> = Vec::new();
   // create some math for rendering tiles
   let tile_width: f32 = 1. / width as f32;
   let tile_height: f32 = 1. / height as f32;
   let texture_width: f32 = 8. / TILESET_WIDTH as f32;
   let texture_height: f32 = 8. / TILESET_HEIGHT as f32;
-  // iterate through the tiles and generate vertices
-  // one more tile than always visible should be rendered to allow smooth movement
+
   for x in start_x..(start_x + width + 1) {
     for y in start_y..(start_y + height + 1) {
-      let tiletype = world[x as usize][y as usize];
 
+      // relative position on the screen
       let relative_x = (x - start_x) as f32;
       let relative_y = (y - start_y) as f32;
-      // top left bottom left top right triangle
-      indices.push(vertices.len().try_into().unwrap());
-      vertices.push(Vertex { // top left
-        pos: [ (relative_x * tile_width) * 2. - 1., 1. - (relative_y * tile_height) * 2. ],
-        tex_coords: [ tiletype.ts_coord_x as f32 * texture_width, tiletype.ts_coord_y as f32 * texture_height ],
-        animation_frames: tiletype.animation_frames as f32
+
+      // find the type of tile for this instance
+      let tile_type = world[x as usize][y as usize];
+
+      instances.push(TileInstance {
+        x: relative_x, y: relative_y, // the position on the screen it fills
+        offset_x: tile_type.offset_x, offset_y: tile_type.offset_y,
+        height: tile_type.height, width: tile_type.width,
+        ts_coord_x: tile_type.ts_coord_x, ts_coord_y: tile_type.ts_coord_y,
+        animation_frames: tile_type.animation_frames,
+
+        // general information about the tiles for rendering
+        tile_width, tile_height,
+        tx_width: texture_width, tx_height: texture_height
       });
-      indices.push(vertices.len().try_into().unwrap());
-      vertices.push(Vertex { // bottom left
-        pos: [ (relative_x * tile_width) * 2. - 1., 1. - ((relative_y + 1.) * tile_height) * 2. ],
-        tex_coords: [ tiletype.ts_coord_x as f32 * texture_width, (tiletype.ts_coord_y as f32 + 1.) * texture_height ],
-        animation_frames: tiletype.animation_frames as f32
-      });
-      indices.push(vertices.len().try_into().unwrap());
-      vertices.push(Vertex { // top right
-        pos: [ ((relative_x + 1.) * tile_width) * 2. - 1., 1. - (relative_y * tile_height) * 2. ],
-        tex_coords: [ (tiletype.ts_coord_x as f32 + 1.) * texture_width,  tiletype.ts_coord_y as f32 * texture_height ],
-        animation_frames: tiletype.animation_frames as f32
-      });
-      // bottom left bottom right top right triangle
-      indices.push(vertices.len().try_into().unwrap());
-      vertices.push(Vertex { // bottom left
-        pos: [ (relative_x * tile_width) * 2. - 1., 1. - ((relative_y + 1.) * tile_height) * 2. ],
-        tex_coords: [ tiletype.ts_coord_x as f32 * texture_width, (tiletype.ts_coord_y as f32 + 1.) * texture_height ],
-        animation_frames: tiletype.animation_frames as f32
-      });
-      indices.push(vertices.len().try_into().unwrap());
-      vertices.push(Vertex { // bottom right
-        pos: [ ((relative_x + 1.) * tile_width) * 2. - 1., 1. - ((relative_y + 1.) * tile_height) * 2. ],
-        tex_coords: [ (tiletype.ts_coord_x as f32 + 1.) * texture_width, (tiletype.ts_coord_y as f32 + 1.) * texture_height ],
-        animation_frames: tiletype.animation_frames as f32
-      });
-      indices.push(vertices.len().try_into().unwrap());
-      vertices.push(Vertex { // top right
-        pos: [ ((relative_x + 1.) * tile_width) * 2. - 1., 1. - (relative_y * tile_height) * 2. ],
-        tex_coords: [ (tiletype.ts_coord_x as f32 + 1.) * texture_width, tiletype.ts_coord_y as f32 * texture_height ],
-        animation_frames: tiletype.animation_frames as f32
-      });
+
     }
   }
-  ( vertices.iter().cloned().collect(), indices.iter().cloned().collect() )
+
+  return instances;
+
 }
